@@ -66,3 +66,8 @@ $ go mod init go-kilo
 3. Windows側でVSCodeが起動して、ステータスバーの左端に「WSL: Ubuntu-20.04」と表示されればOK。
 4. さらにGoの拡張機能をインストールして、表示される指示に従ってGo関連のツール（dlvなど）をインストールして準備完了。
 5. Hello Worlodのソースを書いて、VSCodeからデバッグができること（ブレークポイントに止まるなど）を確認。
+
+### 1-2. [The main() function](https://viewsourcecode.org/snaptoken/kilo/01.setup.html#the-main-function)
+
+前の手順で kilo.go 及び main() を作成済み。  
+Goでは明示的に return を書かなければ 0 を返すので、終了コードは省略。  
