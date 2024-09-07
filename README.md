@@ -21,7 +21,7 @@ C言語でテキストエディタを作るチュートリアルの [Build Your 
     - 最低でもチュートリアルのステップごとにコミットする。
 - この REDAME に開発記録をメモしながら進める。
 
-## 1. Setup
+## 1. [Setup](https://viewsourcecode.org/snaptoken/kilo/01.setup.html)
 
 ### 1-1. [How to install a C compiler…](https://viewsourcecode.org/snaptoken/kilo/01.setup.html#how-to-install-a-c-compiler)
 
@@ -75,3 +75,10 @@ Goでは明示的に return を書かなければ 0 を返すので、終了コ�
 ### 1-3. [Compiling with make](https://viewsourcecode.org/snaptoken/kilo/01.setup.html#compiling-with-make)
 
 Go用のMakefileを追加。  
+
+## 2. [Entering raw mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html)
+
+標準入力から1文字取得するコードを追加。  
+Ctrl+DやCtrl+Cで終了する点はチュートリアルと同じ。  
+
+VSCodeのデバッグ中に標準入力をうまく扱えなかったため、launch.jsonに `"console": "integratedTerminal"` を追加して対処。  

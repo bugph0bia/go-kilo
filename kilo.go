@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"io"
+	"os"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	b := []byte{0}
+	for {
+		if _, err := os.Stdin.Read(b); err == io.EOF {
+			break
+		}
+	}
 }
