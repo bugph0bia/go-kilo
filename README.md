@@ -71,3 +71,7 @@ $ go mod init go-kilo
 
 前の手順で kilo.go 及び main() を作成済み。  
 Goでは明示的に return を書かなければ 0 を返すので、終了コードは省略。  
+
+### 1-3. [Compiling with make](https://viewsourcecode.org/snaptoken/kilo/01.setup.html#compiling-with-make)
+
+Go用のMakefileを追加。  
