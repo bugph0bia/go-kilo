@@ -87,3 +87,18 @@ VSCodeのデバッグ中に標準入力をうまく扱えなかったため、la
 
 `q` が入力された場合も狩猟するようにコードを修正。  
 
+## 2-2. [Turn off echoing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-echoing)
+
+Go言語でターミナルの属性を取得/設定する方法を探したところ、最終的に `term.MakeRaw()` を利用すればよいであろうことがわかった。  
+そのため、`enableRawMode()` は自前で実装する必要がなくなった。  
+`MakeRaw()` は厳密には、ここで行いたかったECHOフラグのOFF以外にも諸々フラグの設定を行ってくれる関数となっている。  
+
+調査の過程で参考にした情報：  
+
+- https://stackoverflow.com/questions/69693105/golang-unix-tcgets-equivalent-on-mac
+    - `unix.IoctlGetTermios()` と `unix.IoctlSetTermios()` を使用してターミナルの属性を取得するコード。
+    - 渡すフラグは `unix.TCGETA` `unix.TCSETA` ではなく `unix.TCGETS` `unix.TCSETS` でないとうまくいかない？Linux系のOSの違いによるもの？
+- https://qiita.com/x-color/items/f2b6b0852c1a7484ffff
+    - `import "golang.org/x/crypto/ssh/terminal"` で利用できる `terminal.ReadPassword()` の内部コード。
+- https://github.com/mattn/go-tty
+    - 最終的に利用することになった term モジュールと同じようなコードが実装されている。
