@@ -82,3 +82,8 @@ Go用のMakefileを追加。
 Ctrl+DやCtrl+Cで終了する点はチュートリアルと同じ。  
 
 VSCodeのデバッグ中に標準入力をうまく扱えなかったため、launch.jsonに `"console": "integratedTerminal"` を追加して対処。  
+
+## 2-1. [Press `q` to quit?](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#press-q-to-quit)
+
+`q` が入力された場合も狩猟するようにコードを修正。  
+

@@ -8,7 +8,8 @@ import (
 func main() {
 	b := []byte{0}
 	for {
-		if _, err := os.Stdin.Read(b); err == io.EOF {
+		_, err := os.Stdin.Read(b)
+		if err == io.EOF || b[0] == 'q' {
 			break
 		}
 	}
