@@ -102,3 +102,10 @@ Go言語でターミナルの属性を取得/設定する方法を探したと�
     - `import "golang.org/x/crypto/ssh/terminal"` で利用できる `terminal.ReadPassword()` の内部コード。
 - https://github.com/mattn/go-tty
     - 最終的に利用することになった term モジュールと同じようなコードが実装されている。
+
+## 2-3. [Disable raw mode at exit](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-raw-mode-at-exit)
+
+`MakeRaw()` の戻り値に変更前のターミナル属性が返ってくるので、これを保存しておいてプログラム終了時に実行する。  
+Go言語では `atexit()` の代わりに `defer` 文を使用可能。  
+前回と同様、`disableRawMode()` は実装する必要なし。  
+
