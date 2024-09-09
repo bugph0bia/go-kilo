@@ -91,7 +91,7 @@ VSCodeのデバッグ中に標準入力をうまく扱えなかったため、la
 
 Go言語でターミナルの属性を取得/設定する方法を探したところ、最終的に `term.MakeRaw()` を利用すればよいであろうことがわかった。  
 そのため、`enableRawMode()` は自前で実装する必要がなくなった。  
-`MakeRaw()` は厳密には、ここで行いたかったECHOフラグのOFF以外にも諸々フラグの設定を行ってくれる関数となっている。  
+`MakeRaw()` は厳密には、ここで行いたかった`ECHO`フラグのOFF以外にも諸々フラグの設定を行ってくれる関数となっている。  
 
 調査の過程で参考にした情報：  
 
@@ -109,3 +109,6 @@ Go言語でターミナルの属性を取得/設定する方法を探したと�
 Go言語では `atexit()` の代わりに `defer` 文を使用可能。  
 前回と同様、`disableRawMode()` は実装する必要なし。  
 
+## 2-4. [Turn off canonical mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-canonical-mode)
+
+`MakeRaw()` の中で、`ICANON`フラグのOFFも行われているため、ここでは何もすることはない。  
