@@ -126,3 +126,6 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`ISIG`フラグのOFFも行われているため、ここでは何もすることはない。  
 
+# 2-7. [Disable `Ctrl-S` and `Ctrl-Q`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-s-and-ctrl-q)
+
+`MakeRaw()` の中で、`IXON`フラグのOFFも行われているため、ここでは何もすることはない。  
