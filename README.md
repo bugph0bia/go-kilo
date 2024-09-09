@@ -175,3 +175,7 @@ http://www.unixwiz.net/techtips/termios-vmin-vtime.html
 `panic()` だと終了コードは1になる保証はないようだが、非0なので問題ないと考える。  
 
 `syscall.EAGAIN` をエラーにしないようにするために、標準入力から読み出す関数も `syscall.Read()` に変更した。  
+
+## 2-14. [Sections](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#sections)
+
+チュートリアルではソースコードをセクションコメントで分割しているが、それには倣わないこととする。  
