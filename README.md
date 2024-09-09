@@ -134,3 +134,6 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`IEXTEN`フラグのOFFも行われているため、ここでは何もすることはない。  
 
+# 2-9. [Fix `Ctrl-M`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#fix-ctrl-m)
+
+`MakeRaw()` の中で、`ICRNL`フラグのOFFも行われているため、ここでは何もすることはない。  
