@@ -152,3 +152,17 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 
 ここまでで各種フラグ操作について見てきたが、`MakeRaw()` ではチュートリアルのコードで行っていないフラグ制御がまだ行われている。  
 この違いについては一旦無視し、チュートリアルと動作の差異が出てきたら適宜確認することにして次に進む。  
+
+# 2-12. [A timeout for `read()`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
+
+`MakeRaw()` の中で `VMIN=1`, `VTIME=0` と設定されるが、これはチュートリアルと異なる設定である。  
+通常、ターミナルをRAWモードにする場合は理にかなっているようだが、チュートリアルに合わせるために `VMIN=0`, `VTIME=1` と設定するコードを追加する。  
+これによってRAWモード設定のコードが長くなるため、チュートリアルと同じ `enableRawMode()` という関数にまとめ、対称性のために `disableRawMode()` も作る。  
+
+`VMIN=0`, `VTIME=1` に設定したことで、チュートリアルの説明の通りの下記の動作を確認することができるようになる。  
+
+- 何もキーを押さないと `0` が出力され続ける（1/10秒周期）。
+- キーを押すと対応する文字が出力される。1/10秒より早く押しても反応する。
+
+VMIN と VTIME に関しては、下記を参照。  
+http://www.unixwiz.net/techtips/termios-vmin-vtime.html

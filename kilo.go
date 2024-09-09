@@ -2,39 +2,61 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"syscall"
 	"unicode"
 
+	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
 
-func main() {
-	// ターミナルをRAWモードにする
+// ターミナルをRAWモードにする
+func enableRawMode() *term.State {
+	// RAWモード
 	origTermios, err := term.MakeRaw(syscall.Stdin)
 	if err != nil {
 		panic(err)
 	}
-	// プログラム終了時にターミナルのモードを元に戻す
-	defer term.Restore(syscall.Stdin, origTermios)
 
-	b := []byte{0}
+	// MakeRaw()では、VMIN=1, VTIME=0 に設定されるためここで修正
+	termios, err := unix.IoctlGetTermios(syscall.Stdin, unix.TCGETS)
+	if err != nil {
+		panic(err)
+	}
+	termios.Cc[unix.VMIN] = 0
+	termios.Cc[unix.VTIME] = 1
+	if err := unix.IoctlSetTermios(syscall.Stdin, unix.TCSETS, termios); err != nil {
+		panic(err)
+	}
+
+	return origTermios
+}
+
+// ターミナルをRAWモードから復帰する
+func disableRawMode(origTermios *term.State) {
+	term.Restore(syscall.Stdin, origTermios)
+}
+
+func main() {
+	// ターミナルをRAWモードにする
+	origTermios := enableRawMode()
+	// プログラム終了時にターミナルのモードを復帰する
+	defer disableRawMode(origTermios)
+
 	for {
 		// 標準入力から1バイトずつ読み込む
-		_, err := os.Stdin.Read(b)
-		if err == io.EOF {
-			break
-		}
+		b := []byte{0}
+		os.Stdin.Read(b)
 		c := rune(b[0])
-		// q で終了
-		if c == 'q' {
-			break
-		}
+		// 読み込んだ文字を画面表示
 		if unicode.IsControl(c) {
 			fmt.Printf("%d\r\n", c)
 		} else {
 			fmt.Printf("%d ('%c')\r\n", c, c)
+		}
+		// q で終了
+		if c == 'q' {
+			break
 		}
 	}
 }
