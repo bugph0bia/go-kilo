@@ -112,3 +112,13 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 ## 2-4. [Turn off canonical mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-canonical-mode)
 
 `MakeRaw()` の中で、`ICANON`フラグのOFFも行われているため、ここでは何もすることはない。  
+
+# 2-5. [Display keypresses](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#display-keypresses)
+
+`iscntrl()` に対応するGoの関数は `unicode.IsControl()` 。  
+`printf()` は、ほぼそのまま使える `fmt.Printf()` がある。`%c` `%d` などの書式指定子もほぼそのまま使える。Goにはより汎用的に使える `%v` があるが、まずはC言語と同じものを使うこととする。   
+
+1文字分を読み込んで出力する部分は、Rune型に変換するコードとする。  
+
+`MakeRaw()` でこの先に行う予定の実装を先行して対応しているため、`Ctrl+Z` などの動きはチュートリアル通りに試すことはできない。  
+
