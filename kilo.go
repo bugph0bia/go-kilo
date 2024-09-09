@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"syscall"
 	"unicode"
 
@@ -46,7 +45,10 @@ func main() {
 	for {
 		// 標準入力から1バイトずつ読み込む
 		b := []byte{0}
-		os.Stdin.Read(b)
+		_, err := syscall.Read(syscall.Stdin, b)
+		if err != nil && err != syscall.EAGAIN { // Cygwin 対応のために EAGAIN はエラーにしない
+			panic(err)
+		}
 		c := rune(b[0])
 		// 読み込んだ文字を画面表示
 		if unicode.IsControl(c) {

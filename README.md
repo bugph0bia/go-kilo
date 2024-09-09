@@ -113,7 +113,7 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`ICANON`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-# 2-5. [Display keypresses](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#display-keypresses)
+## 2-5. [Display keypresses](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#display-keypresses)
 
 `iscntrl()` に対応するGoの関数は `unicode.IsControl()` 。  
 `printf()` は、ほぼそのまま使える `fmt.Printf()` がある。`%c` `%d` などの書式指定子もほぼそのまま使える。Goにはより汎用的に使える `%v` があるが、まずはC言語と同じものを使うこととする。   
@@ -122,30 +122,30 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` でこの先に行う予定の実装を先行して対応しているため、`Ctrl+Z` などの動きはチュートリアル通りに試すことはできない。  
 
-# 2-6. [Turn off `Ctrl-C` and `Ctrl-Z` signals](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-ctrl-c-and-ctrl-z-signals)
+## 2-6. [Turn off `Ctrl-C` and `Ctrl-Z` signals](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-ctrl-c-and-ctrl-z-signals)
 
 `MakeRaw()` の中で、`ISIG`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-# 2-7. [Disable `Ctrl-S` and `Ctrl-Q`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-s-and-ctrl-q)
+## 2-7. [Disable `Ctrl-S` and `Ctrl-Q`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-s-and-ctrl-q)
 
 `MakeRaw()` の中で、`IXON`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-# 2-8. [Disable `Ctrl-V`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-v)
+## 2-8. [Disable `Ctrl-V`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-v)
 
 `MakeRaw()` の中で、`IEXTEN`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-# 2-9. [Fix `Ctrl-M`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#fix-ctrl-m)
+## 2-9. [Fix `Ctrl-M`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#fix-ctrl-m)
 
 `MakeRaw()` の中で、`ICRNL`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-# 2-10. [Turn off all output processing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-all-output-processing)
+## 2-10. [Turn off all output processing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-all-output-processing)
 
 `MakeRaw()` の中で、`ICRNL`フラグのOFFも行われているため、ここでもフラグ制御は不要。  
 
 文字を出力するときの末尾の改行コードを `\n` から `\r\n` に変更することで、これまでは出力するたびにカーソルが中途半端な位置にあったが、毎回ターミナルの左端に戻るようになることを確認できる。  
 `\r` (CR: Carriage Return) の本来の役割を体感できる。  
 
-# 2-11. [Miscellaneous flags](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
+## 2-11. [Miscellaneous flags](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
 
 `MakeRaw()` の中で、`BRKINT`, `ISTRIP`フラグのOFFと`CS8`ビットマスクのONも行われているため、ここでは何もすることはない。  
 `INPCK`フラグのOFFについては行われていないが、チュートリアルの説明にもあるように最近のターミナルには適用されないフラグなので省略されているのではないかと推測する。  
@@ -153,7 +153,7 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 ここまでで各種フラグ操作について見てきたが、`MakeRaw()` ではチュートリアルのコードで行っていないフラグ制御がまだ行われている。  
 この違いについては一旦無視し、チュートリアルと動作の差異が出てきたら適宜確認することにして次に進む。  
 
-# 2-12. [A timeout for `read()`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
+## 2-12. [A timeout for `read()`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
 
 `MakeRaw()` の中で `VMIN=1`, `VTIME=0` と設定されるが、これはチュートリアルと異なる設定である。  
 通常、ターミナルをRAWモードにする場合は理にかなっているようだが、チュートリアルに合わせるために `VMIN=0`, `VTIME=1` と設定するコードを追加する。  
@@ -166,3 +166,12 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 
 VMIN と VTIME に関しては、下記を参照。  
 http://www.unixwiz.net/techtips/termios-vmin-vtime.html
+
+## 2-13. [Error handling](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#error-handling)
+
+チュートリアルの `die()` 関数は、Goでは `panic()` で代用できる。  
+ここまでのコードでもすでに使用してきた。  
+メッセージを出して終了コード1で中断するという意味では `log.Fatal()` の方が相応しいかもしれないが、`defer` を適切に処理する `panic()` を採用することにする。  
+`panic()` だと終了コードは1になる保証はないようだが、非0なので問題ないと考える。  
+
+`syscall.EAGAIN` をエラーにしないようにするために、標準入力から読み出す関数も `syscall.Read()` に変更した。  
