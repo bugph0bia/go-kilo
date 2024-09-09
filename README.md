@@ -137,3 +137,10 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 # 2-9. [Fix `Ctrl-M`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#fix-ctrl-m)
 
 `MakeRaw()` の中で、`ICRNL`フラグのOFFも行われているため、ここでは何もすることはない。  
+
+# 2-10. [Turn off all output processing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-all-output-processing)
+
+`MakeRaw()` の中で、`ICRNL`フラグのOFFも行われているため、ここでもフラグ制御は不要。  
+
+文字を出力するときの末尾の改行コードを `\n` から `\r\n` に変更することで、これまでは出力するたびにカーソルが中途半端な位置にあったが、毎回ターミナルの左端に戻るようになることを確認できる。  
+`\r` (CR: Carriage Return) の本来の役割を体感できる。  
