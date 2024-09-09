@@ -122,3 +122,7 @@ Go言語では `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` でこの先に行う予定の実装を先行して対応しているため、`Ctrl+Z` などの動きはチュートリアル通りに試すことはできない。  
 
+# 2-6. [Turn off `Ctrl-C` and `Ctrl-Z` signals](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-ctrl-c-and-ctrl-z-signals)
+
+`MakeRaw()` の中で、`ISIG`フラグのOFFも行われているため、ここでは何もすることはない。  
+
