@@ -1,14 +1,21 @@
 package main
 
+/*** imports ***/
+
 import (
-	"fmt"
 	"syscall"
-	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
+
+/*** data ***/
+
+// ターミナルの初期モード
+var origTermios *term.State
+
+/*** terminal ***/
 
 // Ctrl+英字キーを押したときのコードを返す
 func ctrlKey(r rune) rune {
@@ -19,19 +26,25 @@ func ctrlKey(r rune) rune {
 	return rune(b[0] & 0x1F)
 }
 
+// ターミナルをRAWモードから復帰する
+func disableRawMode() {
+	term.Restore(syscall.Stdin, origTermios)
+}
+
 // ターミナルをRAWモードにする
-func enableRawMode() *term.State {
+func enableRawMode() {
 	// MakeRaw を使用せずチュートリアルのコードに従うこととする
-	//origTermios, err := term.MakeRaw(syscall.Stdin)
+	//t, err := term.MakeRaw(syscall.Stdin)
 	//if err != nil {
 	//	panic(err)
 	//}
 
 	// 変更前の属性値を取得しておく
-	origTermios, err := term.GetState(syscall.Stdin)
+	t, err := term.GetState(syscall.Stdin)
 	if err != nil {
 		panic(err)
 	}
+	origTermios = t
 
 	// ターミナルをRAWモードに設定する
 	termios, err := unix.IoctlGetTermios(syscall.Stdin, unix.TCGETS)
@@ -47,37 +60,51 @@ func enableRawMode() *term.State {
 	if err := unix.IoctlSetTermios(syscall.Stdin, unix.TCSETS, termios); err != nil {
 		panic(err)
 	}
-
-	return origTermios
 }
 
-// ターミナルをRAWモードから復帰する
-func disableRawMode(origTermios *term.State) {
-	term.Restore(syscall.Stdin, origTermios)
+// キー入力を待ち、入力結果を返す
+func editorReadKey() rune {
+	b := []byte{0}
+	for {
+		nread, err := syscall.Read(syscall.Stdin, b)
+		if err != nil && err != syscall.EAGAIN {
+			panic(err)
+		}
+		if nread == 1 {
+			break
+		}
+	}
+	return rune(b[0])
 }
+
+/*** input ***/
+
+// キー入力を待ち、入力されたキーに対応する処理を行う
+func editorProcessKeypress() bool {
+	var quit bool
+
+	// キー入力
+	c := editorReadKey()
+
+	switch c {
+	// Ctrl-Q: プログラム終了
+	case ctrlKey('q'):
+		quit = true
+	}
+	return quit
+}
+
+/*** init ***/
 
 func main() {
 	// ターミナルをRAWモードにする
-	origTermios := enableRawMode()
-	// プログラム終了時にターミナルのモードを復帰する
-	defer disableRawMode(origTermios)
+	enableRawMode()
+	defer disableRawMode()
 
+	// メインループ
 	for {
-		// 標準入力から1バイトずつ読み込む
-		b := []byte{0}
-		_, err := syscall.Read(syscall.Stdin, b)
-		if err != nil && err != syscall.EAGAIN { // Cygwin 対応のために EAGAIN はエラーにしない
-			panic(err)
-		}
-		c := rune(b[0])
-		// 読み込んだ文字を画面表示
-		if unicode.IsControl(c) {
-			fmt.Printf("%d\r\n", c)
-		} else {
-			fmt.Printf("%d ('%c')\r\n", c, c)
-		}
-		// q で終了
-		if c == ctrlKey('q') {
+		// 入力されたキーに対応する処理を行う
+		if quit := editorProcessKeypress(); quit {
 			break
 		}
 	}

@@ -231,3 +231,13 @@ ASCIIコードの下記の性質については知らなかったので勉強に
 - 英字の上位3ビットを落とすとCtrl+英字キーを押したときのコードに対応する
 - 英字の第5ビットのOFF/ONで大文字/小文字の変換が可能である
 
+### 3-2. [Refactor keyboard input](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#refactor-keyboard-input)
+
+ほぼチュートリアル通りにコードを実装。  
+
+ただし、Ctrl-Q でプログラム終了するときに `os.Exit(0)` してしまうと、defer してある `disableRawMode()` が呼び出されない。  
+そのため、`main()` を経由して終了するコードとした。  
+
+また、CとGoの言語の違いがあるためセクションコメントを入れてこなかったが、この時点でかなり似たコードにできているため、セクションコメントを入れることとした。  
+Goにはdefineがない、includesではなくimports、といった違いはある。  
+dataセクションも設けることとし、パッケージレベルの変数（グローバル変数）の利用についてもチュートリアルに倣うこととした。  
