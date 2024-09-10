@@ -4,10 +4,20 @@ import (
 	"fmt"
 	"syscall"
 	"unicode"
+	"unicode/utf8"
 
 	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
+
+// Ctrl+英字キーを押したときのコードを返す
+func ctrlKey(r rune) rune {
+	b := make([]byte, 4)
+	if utf8.EncodeRune(b, r) != 1 { // r は1バイトのASCIIコードの前提
+		panic("failed encode rune")
+	}
+	return rune(b[0] & 0x1F)
+}
 
 // ターミナルをRAWモードにする
 func enableRawMode() *term.State {
@@ -67,7 +77,7 @@ func main() {
 			fmt.Printf("%d ('%c')\r\n", c, c)
 		}
 		// q で終了
-		if c == 'q' {
+		if c == ctrlKey('q') {
 			break
 		}
 	}

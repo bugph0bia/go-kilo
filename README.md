@@ -216,3 +216,18 @@ http://www.unixwiz.net/techtips/termios-vmin-vtime.html
 ### 参考
 - https://ja.manpages.org/termios/3
 - http://www.unixwiz.net/techtips/termios-vmin-vtime.html
+
+## 3. [Raw input and output](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html)
+
+### 3-1. [Press `Ctrl-Q` to quit](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#press-ctrl-q-to-quit)
+
+Goにはマクロ関数はないので、`CTRL_KEY()`は通常の関数で実装する。  
+
+C言語でASCIIコード1バイト分を表すのはchar型だが、Goではrune型としている。  
+rune型はutf8のコードポイントを表すことになるが、ASCIIコードの範囲内では同じ値になるので支障はないはず。  
+
+ASCIIコードの下記の性質については知らなかったので勉強になった。  
+
+- 英字の上位3ビットを落とすとCtrl+英字キーを押したときのコードに対応する
+- 英字の第5ビットのOFF/ONで大文字/小文字の変換が可能である
+
