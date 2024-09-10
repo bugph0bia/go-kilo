@@ -11,17 +11,27 @@ import (
 
 // ターミナルをRAWモードにする
 func enableRawMode() *term.State {
-	// RAWモード
-	origTermios, err := term.MakeRaw(syscall.Stdin)
+	// MakeRaw を使用せずチュートリアルのコードに従うこととする
+	//origTermios, err := term.MakeRaw(syscall.Stdin)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	// 変更前の属性値を取得しておく
+	origTermios, err := term.GetState(syscall.Stdin)
 	if err != nil {
 		panic(err)
 	}
 
-	// MakeRaw()では、VMIN=1, VTIME=0 に設定されるためここで修正
+	// ターミナルをRAWモードに設定する
 	termios, err := unix.IoctlGetTermios(syscall.Stdin, unix.TCGETS)
 	if err != nil {
 		panic(err)
 	}
+	termios.Iflag &^= unix.BRKINT | unix.ICRNL | unix.INPCK | unix.ISTRIP | unix.IXON
+	termios.Oflag &^= unix.OPOST
+	termios.Cflag |= unix.CS8
+	termios.Lflag &^= unix.ECHO | unix.ICANON | unix.IEXTEN | unix.ISIG
 	termios.Cc[unix.VMIN] = 0
 	termios.Cc[unix.VTIME] = 1
 	if err := unix.IoctlSetTermios(syscall.Stdin, unix.TCSETS, termios); err != nil {
