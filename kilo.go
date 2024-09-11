@@ -77,6 +77,13 @@ func editorReadKey() rune {
 	return rune(b[0])
 }
 
+/*** output ***/
+
+// スクリーンをクリア
+func editorRefreshScreen() {
+	syscall.Write(syscall.Stdin, []byte("\x1b[2J"))
+}
+
 /*** input ***/
 
 // キー入力を待ち、入力されたキーに対応する処理を行う
@@ -103,6 +110,8 @@ func main() {
 
 	// メインループ
 	for {
+		// スクリーンをクリア
+		editorRefreshScreen()
 		// 入力されたキーに対応する処理を行う
 		if quit := editorProcessKeypress(); quit {
 			break
