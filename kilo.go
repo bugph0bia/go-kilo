@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 	"unicode/utf8"
 
@@ -138,9 +139,16 @@ func getWindowsSize() (int, int, error) {
 // 行を描画
 func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
+		// スクリーンの上から1/3の位置にエディタ名とバージョンを表示
 		if y == ec.screenRows/3 {
 			welcome := fmt.Sprintf("kilo editor -- version %s", kiloVersion)
 			welcomeLen := min(len(welcome), ec.screenCols)
+			padding := (ec.screenCols - welcomeLen) / 2
+			if padding > 0 {
+				*ab += "~"
+				padding--
+			}
+			*ab += strings.Repeat(" ", padding)
 			*ab += welcome[:welcomeLen]
 		} else {
 			*ab += "~"
