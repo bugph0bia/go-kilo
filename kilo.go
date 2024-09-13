@@ -17,7 +17,16 @@ import (
 
 /*** const ***/
 
+// バージョン
 const kiloVersion = "0.0.1"
+
+// 矢印キー
+const (
+	arrowLeft = iota + 1000
+	arrowRight
+	arrowUp
+	arrowDown
+)
 
 /*** data ***/
 
@@ -36,12 +45,12 @@ var ec editorConfig
 /*** terminal ***/
 
 // Ctrl+英字キーを押したときのコードを返す
-func ctrlKey(r rune) rune {
+func ctrlKey(r int) int {
 	b := make([]byte, 4)
-	if utf8.EncodeRune(b, r) != 1 { // r は1バイトのASCIIコードの前提
+	if utf8.EncodeRune(b, rune(r)) != 1 { // r は1バイトのASCIIコードの前提
 		panic("failed encode rune")
 	}
-	return rune(b[0] & 0x1F)
+	return int(b[0] & 0x1F)
 }
 
 // ターミナルをRAWモードから復帰する
@@ -81,7 +90,7 @@ func enableRawMode() {
 }
 
 // キー入力を待ち、入力結果を返す
-func editorReadKey() rune {
+func editorReadKey() int {
 	b := []byte{0}
 	for {
 		nread, err := syscall.Read(syscall.Stdin, b)
@@ -107,19 +116,19 @@ func editorReadKey() rune {
 		if seq[0] == '[' {
 			switch seq[1] {
 			case 'A':
-				return 'w'
+				return arrowUp
 			case 'B':
-				return 's'
+				return arrowDown
 			case 'C':
-				return 'd'
+				return arrowRight
 			case 'D':
-				return 'a'
+				return arrowLeft
 
 			}
 		}
 		return '\x1b'
 	}
-	return rune(b[0])
+	return int(b[0])
 }
 
 // カーソル位置を取得
@@ -209,15 +218,15 @@ func editorRefreshScreen() {
 /*** input ***/
 
 // カーソル移動
-func editorMoveCursor(key rune) {
+func editorMoveCursor(key int) {
 	switch key {
-	case 'a':
+	case arrowLeft:
 		ec.cx--
-	case 'd':
+	case arrowRight:
 		ec.cx++
-	case 'w':
+	case arrowUp:
 		ec.cy--
-	case 's':
+	case arrowDown:
 		ec.cy++
 	}
 }
@@ -234,7 +243,7 @@ func editorProcessKeypress() bool {
 		// Ctrl-Q: プログラム終了
 		quit = true
 
-	case 'w', 's', 'a', 'd':
+	case arrowUp, arrowDown, arrowLeft, arrowRight:
 		// カーソル移動
 		editorMoveCursor(c)
 	}
