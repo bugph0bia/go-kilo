@@ -3,10 +3,11 @@ package main
 /*** imports ***/
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"syscall"
-	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/sys/unix"
@@ -97,19 +98,13 @@ func getCursorPosition() (int, int, error) {
 	}
 
 	fmt.Print("\r\n")
-	for {
-		b := []byte{0}
-		n, err := syscall.Read(syscall.Stdin, b)
-		if err != nil || n != 1 {
-			break
-		}
-		c := rune(b[0])
-		if unicode.IsControl(c) {
-			fmt.Printf("%d\r\n", c)
-		} else {
-			fmt.Printf("%d ('%c')\r\n", c, c)
-		}
-	}
+
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	s := scanner.Text()
+	s = s[1 : len(s)-1]
+	fmt.Print("\r\n")
+	fmt.Println(s)
 
 	editorReadKey()
 
