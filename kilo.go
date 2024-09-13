@@ -107,6 +107,9 @@ func editorProcessKeypress() bool {
 /*** init ***/
 
 func main() {
+	// プログラム終了時にスクリーンを消去
+	defer editorRefreshScreen()
+
 	// ターミナルをRAWモードにする
 	enableRawMode()
 	defer disableRawMode()

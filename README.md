@@ -159,7 +159,7 @@ CではビットOFFするときに `flag &= ~BITS` と書くが、Goでは `flag
 #### 実践
 
 `MakeRaw()` の戻り値に変更前のターミナル属性が返ってくるので、これを保存しておいてプログラム終了時に実行する。  
-Go言語では `atexit()` の代わりに `defer` 文を使用可能。  
+Goでは `atexit()` の代わりに `defer` 文を使用可能。  
 前回と同様、`disableRawMode()` は実装する必要なし。  
 
 ## [2-4. Turn off canonical mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-canonical-mode)
@@ -429,3 +429,16 @@ dataセクションも設けることとし、パッケージレベルの変数�
 #### 実践
 
 チュートリアル通りのコードを追加。  
+
+### [3-5. Clear the screen on exit](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#clear-the-screen-on-exit)
+
+#### チュートリアル
+
+- プログラム終了時にスクリーンをクリアする。
+- エラー発生時にスクリーンクリア→エラーメッセージ表示の順に処理されるようにする。
+
+#### 実践
+
+チュートリアルでは、エラー用の関数 `die()` の中にスクリーン消去処理を書いているが、本ツールでは `panic()` を利用している。  
+また、`atexit()` の中にスクリーン消去処理を書くとエラーメッセージまで消えてしまうとあるが、Goの`panic()`はdeferを適切に処理してからエラーメッセージを表示してくれる。  
+このことから、本ツールではdeferを用いて前項で作成した `editorRefreshScreen()` を呼び出しすことでスクリーン消去することとした。  
