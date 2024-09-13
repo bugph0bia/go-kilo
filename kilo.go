@@ -181,6 +181,20 @@ func editorRefreshScreen() {
 
 /*** input ***/
 
+// カーソル移動
+func editorMoveCursor(key rune) {
+	switch key {
+	case 'a':
+		ec.cx--
+	case 'd':
+		ec.cx++
+	case 'w':
+		ec.cy--
+	case 's':
+		ec.cy++
+	}
+}
+
 // キー入力を待ち、入力されたキーに対応する処理を行う
 func editorProcessKeypress() bool {
 	var quit bool
@@ -189,9 +203,13 @@ func editorProcessKeypress() bool {
 	c := editorReadKey()
 
 	switch c {
-	// Ctrl-Q: プログラム終了
 	case ctrlKey('q'):
+		// Ctrl-Q: プログラム終了
 		quit = true
+
+	case 'w', 's', 'a', 'd':
+		// カーソル移動
+		editorMoveCursor(c)
 	}
 	return quit
 }
@@ -201,8 +219,8 @@ func editorProcessKeypress() bool {
 // 初期化
 func initEditor() {
 	// カーソル位置初期化
-	ec.cx = 10
-	ec.cy = 10
+	ec.cx = 0
+	ec.cy = 0
 
 	// ウィンドウサイズ取得
 	rows, cols, err := getWindowsSize()
