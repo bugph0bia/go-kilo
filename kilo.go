@@ -135,6 +135,7 @@ func getWindowsSize() (int, int, error) {
 func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
 		*ab += "~"
+		*ab += "\x1b[K"
 
 		if y < ec.screenRows-1 {
 			*ab += "\r\n"
@@ -148,7 +149,6 @@ func editorRefreshScreen() {
 	var ab string
 
 	ab += "\x1b[?25l" // カーソルを非表示
-	ab += "\x1b[2J"   // スクリーン消去
 	ab += "\x1b[H"    // カーソル位置を左上へ
 
 	// 行を描画
