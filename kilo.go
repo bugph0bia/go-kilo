@@ -132,26 +132,30 @@ func getWindowsSize() (int, int, error) {
 /*** output ***/
 
 // 行を描画
-func editorDrawRows() {
+func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
-		syscall.Write(syscall.Stdin, []byte("~"))
+		*ab += "~"
 
 		if y < ec.screenRows-1 {
-			syscall.Write(syscall.Stdin, []byte("\r\n"))
+			*ab += "\r\n"
 		}
 	}
 }
 
 // リフレッシュ
 func editorRefreshScreen() {
+	// 出力用文字列バッファ
+	var ab string
+
 	// スクリーンを消去
-	syscall.Write(syscall.Stdin, []byte("\x1b[2J"))
-	syscall.Write(syscall.Stdin, []byte("\x1b[H"))
+	ab += "\x1b[2J"
+	ab += "\x1b[H"
 
 	// 行を描画
-	editorDrawRows()
+	editorDrawRows(&ab)
 
-	syscall.Write(syscall.Stdin, []byte("\x1b[H"))
+	ab += "\x1b[H"
+	syscall.Write(syscall.Stdin, []byte(ab))
 }
 
 /*** input ***/
