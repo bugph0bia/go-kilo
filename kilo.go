@@ -147,14 +147,15 @@ func editorRefreshScreen() {
 	// 出力用文字列バッファ
 	var ab string
 
-	// スクリーンを消去
-	ab += "\x1b[2J"
-	ab += "\x1b[H"
+	ab += "\x1b[?25l" // カーソルを非表示
+	ab += "\x1b[2J"   // スクリーン消去
+	ab += "\x1b[H"    // カーソル位置を左上へ
 
 	// 行を描画
 	editorDrawRows(&ab)
 
-	ab += "\x1b[H"
+	ab += "\x1b[H"    // カーソル位置を左上へ
+	ab += "\x1b[?25h" // カーソルを表示
 	syscall.Write(syscall.Stdin, []byte(ab))
 }
 
