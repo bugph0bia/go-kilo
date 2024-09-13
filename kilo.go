@@ -3,7 +3,10 @@ package main
 /*** imports ***/
 
 import (
+	"errors"
+	"fmt"
 	"syscall"
+	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/sys/unix"
@@ -85,6 +88,34 @@ func editorReadKey() rune {
 	return rune(b[0])
 }
 
+// カーソル位置を取得
+func getCursorPosition() (int, int, error) {
+	// カーソル位置を問い合わせ
+	_, err := syscall.Write(syscall.Stdin, []byte("\x1b[6n"))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	fmt.Print("\r\n")
+	for {
+		b := []byte{0}
+		n, err := syscall.Read(syscall.Stdin, b)
+		if err != nil || n != 1 {
+			break
+		}
+		c := rune(b[0])
+		if unicode.IsControl(c) {
+			fmt.Printf("%d\r\n", c)
+		} else {
+			fmt.Printf("%d ('%c')\r\n", c, c)
+		}
+	}
+
+	editorReadKey()
+
+	return 0, 0, errors.New("test")
+}
+
 // ウィンドウサイズを取得
 func getWindowsSize() (int, int, error) {
 	ws, err := unix.IoctlGetWinsize(syscall.Stdin, unix.TIOCGWINSZ)
@@ -94,8 +125,7 @@ func getWindowsSize() (int, int, error) {
 		if err2 != nil {
 			return 0, 0, err2
 		}
-		editorReadKey()
-		return 0, 0, err
+		return getCursorPosition()
 	}
 	return int(ws.Row), int(ws.Col), nil
 }
