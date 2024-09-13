@@ -465,3 +465,20 @@ dataセクションも設けることとし、パッケージレベルの変数�
 #### 実践
 
 チュートリアルではエディタの状態を保持するグローバル変数は `E` としているが、Goでは大文字の変数名は外部公開されてしまうため避けたい。そのため本ツールでは `ec` という変数名にする。  
+
+### [3-8. Window size, the easy way](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#window-size-the-easy-way)
+
+
+#### チュートリアル
+
+- ウィンドウサイズを取得する。
+    - ほとんどのシステムでは、システムコール `ioctl()` を `TIOCGWINSZ` リクエストで呼び出すことで、ターミナルのサイズを取得することができる。
+    - `TIOCGWINSZ` は、**T**erminal **IOC**tl (**I**nput/**O**utput **C**on**t**ro**l**) **G**et **WIN**dow **S**i**Z**e の略。
+
+#### 実践
+
+Goでは、システムコール `ioctl()` は `unix.IoctlXXX()` 系のラッパー関数から利用できる。  
+値を取得するための関数は `unix.IoctlGetXXX()` として各種用意されており、`XXX` 部分は戻り値の型ごとに用意されている模様。  
+ウィンドウサイズを取得する関数は `unix.IoctrlGetWinsize()` であり、`Winsize` 型の戻り値を返す。第2引数には `unix.TIOCGWINSZ` を渡す必要があり、これはCの場合と同様である。`Winsize` 型の戻り値を取得するケースは `unix.TIOCGWINSZ` リクエストしかないようなので第2引数を省略できても良いように思えるが、一貫性のために引数を渡すことになっているのだと推測される。  
+
+取得したサイズはエディタの状態を保持する構造体のメンバとするが、チュートリアルの `screenrows` `screencols` は気に入らなかったので、`screenRows` `screenCols` とした。  

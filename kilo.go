@@ -14,6 +14,9 @@ import (
 
 // エディタ状態
 type editorConfig struct {
+	// スクリーンサイズ
+	screenRows int
+	screenCols int
 	// ターミナルの初期モード
 	origTermios *term.State
 }
@@ -82,11 +85,20 @@ func editorReadKey() rune {
 	return rune(b[0])
 }
 
+// ウィンドウサイズを取得
+func getWindowsSize() (int, int, error) {
+	ws, err := unix.IoctlGetWinsize(syscall.Stdin, unix.TIOCGWINSZ)
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(ws.Row), int(ws.Col), nil
+}
+
 /*** output ***/
 
 // 行を描画
 func editorDrawRows() {
-	for y := 0; y < 24; y++ {
+	for y := 0; y < ec.screenRows; y++ {
 		syscall.Write(syscall.Stdin, []byte("~\r\n"))
 	}
 }
@@ -122,6 +134,15 @@ func editorProcessKeypress() bool {
 
 /*** init ***/
 
+// 初期化
+func initEditor() {
+	r, c, err := getWindowsSize()
+	if err != nil {
+		panic(err)
+	}
+	ec.screenRows, ec.screenCols = r, c
+}
+
 func main() {
 	// プログラム終了時にスクリーンを消去
 	defer func() {
@@ -132,6 +153,9 @@ func main() {
 	// ターミナルをRAWモードにする
 	enableRawMode()
 	defer disableRawMode()
+
+	// 初期化
+	initEditor()
 
 	// メインループ
 	for {
