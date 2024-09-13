@@ -23,9 +23,10 @@ const kiloVersion = "0.0.1"
 
 // エディタ状態
 type editorConfig struct {
+	// カーソル位置
+	cx, cy int
 	// スクリーンサイズ
-	screenRows int
-	screenCols int
+	screenRows, screenCols int
 	// ターミナルの初期モード
 	origTermios *term.State
 }
@@ -172,8 +173,9 @@ func editorRefreshScreen() {
 	// 行を描画
 	editorDrawRows(&ab)
 
-	ab += "\x1b[H"    // カーソル位置を左上へ
-	ab += "\x1b[?25h" // カーソルを表示
+	ab += fmt.Sprintf("\x1b[%d;%dH", ec.cy+1, ec.cx+1) // カーソル位置を設定
+	ab += "\x1b[?25h"                                  // カーソルを表示
+
 	syscall.Write(syscall.Stdin, []byte(ab))
 }
 
@@ -198,11 +200,16 @@ func editorProcessKeypress() bool {
 
 // 初期化
 func initEditor() {
-	r, c, err := getWindowsSize()
+	// カーソル位置初期化
+	ec.cx = 10
+	ec.cy = 10
+
+	// ウィンドウサイズ取得
+	rows, cols, err := getWindowsSize()
 	if err != nil {
 		panic(err)
 	}
-	ec.screenRows, ec.screenCols = r, c
+	ec.screenRows, ec.screenCols = rows, cols
 }
 
 func main() {
