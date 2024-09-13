@@ -134,7 +134,11 @@ func getWindowsSize() (int, int, error) {
 // 行を描画
 func editorDrawRows() {
 	for y := 0; y < ec.screenRows; y++ {
-		syscall.Write(syscall.Stdin, []byte("~\r\n"))
+		syscall.Write(syscall.Stdin, []byte("~"))
+
+		if y < ec.screenRows-1 {
+			syscall.Write(syscall.Stdin, []byte("\r\n"))
+		}
 	}
 }
 

@@ -502,3 +502,13 @@ Goでは、システムコール `ioctl()` は `unix.IoctlXXX()` 系のラッパ
 さらに、カーソル位置を取得した結果を画面に文字列として出力する。このとき、先頭のESCと末尾の'R'は除去する。  
 カーソル位置を含む文字列から行と列の数値を取り出して、ウィンドウサイズとして利用する。  
 コードが動くことを確認できたので、通常の `unix.IoctrlGetWinsize()` で取得したサイズを使用するコードに戻す。  
+
+### [3-10. The last line](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#the-last-line)
+
+#### チュートリアル
+
+- 最終行のチルダの後の改行コードを出力しないようにする。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  
