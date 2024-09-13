@@ -79,11 +79,22 @@ func editorReadKey() rune {
 
 /*** output ***/
 
+// 行を描画
+func editorDrawRows() {
+	for y := 0; y < 24; y++ {
+		syscall.Write(syscall.Stdin, []byte("~\r\n"))
+	}
+}
+
 // リフレッシュ
 func editorRefreshScreen() {
 	// スクリーンを消去
 	syscall.Write(syscall.Stdin, []byte("\x1b[2J"))
-	// カーソル位置を復帰
+	syscall.Write(syscall.Stdin, []byte("\x1b[H"))
+
+	// 行を描画
+	editorDrawRows()
+
 	syscall.Write(syscall.Stdin, []byte("\x1b[H"))
 }
 
@@ -108,7 +119,10 @@ func editorProcessKeypress() bool {
 
 func main() {
 	// プログラム終了時にスクリーンを消去
-	defer editorRefreshScreen()
+	defer func() {
+		syscall.Write(syscall.Stdin, []byte("\x1b[2J"))
+		syscall.Write(syscall.Stdin, []byte("\x1b[H"))
+	}()
 
 	// ターミナルをRAWモードにする
 	enableRawMode()
