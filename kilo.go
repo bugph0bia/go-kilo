@@ -102,13 +102,17 @@ func getCursorPosition() (int, int, error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	s := scanner.Text()
-	s = s[1 : len(s)-1]
-	fmt.Print("\r\n")
-	fmt.Println(s)
+	if s[0] != '\x1b' || s[1] != '[' {
+		return 0, 0, errors.New("failed get cursor position")
+	}
+	s = s[2 : len(s)-1]
+	var rows, cols int
+	_, err = fmt.Sscanf(s, "%d;%d", &rows, &cols)
+	if err != nil {
+		return 0, 0, err
+	}
 
-	editorReadKey()
-
-	return 0, 0, errors.New("test")
+	return rows, cols, nil
 }
 
 // ウィンドウサイズを取得
