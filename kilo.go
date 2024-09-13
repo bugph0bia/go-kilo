@@ -92,6 +92,33 @@ func editorReadKey() rune {
 			break
 		}
 	}
+
+	// エスケープシーケンスを処理
+	if b[0] == '\x1b' {
+		seq := make([]byte, 3)
+		n0, _ := syscall.Read(syscall.Stdin, seq[0:1])
+		if n0 != 1 {
+			return '\x1b'
+		}
+		n1, _ := syscall.Read(syscall.Stdin, seq[1:2])
+		if n1 != 1 {
+			return '\x1b'
+		}
+		if seq[0] == '[' {
+			switch seq[1] {
+			case 'A':
+				return 'w'
+			case 'B':
+				return 's'
+			case 'C':
+				return 'd'
+			case 'D':
+				return 'a'
+
+			}
+		}
+		return '\x1b'
+	}
 	return rune(b[0])
 }
 
