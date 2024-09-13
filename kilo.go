@@ -88,7 +88,13 @@ func editorReadKey() rune {
 // ウィンドウサイズを取得
 func getWindowsSize() (int, int, error) {
 	ws, err := unix.IoctlGetWinsize(syscall.Stdin, unix.TIOCGWINSZ)
-	if err != nil {
+	if true || err != nil || ws.Col == 0 {
+		// カーソルをスクリーン右下端に移動
+		_, err2 := syscall.Write(syscall.Stdin, []byte("\x1b[999C\x1b[999B"))
+		if err2 != nil {
+			return 0, 0, err2
+		}
+		editorReadKey()
 		return 0, 0, err
 	}
 	return int(ws.Row), int(ws.Col), nil
