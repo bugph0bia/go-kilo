@@ -14,6 +14,10 @@ import (
 	"golang.org/x/term"
 )
 
+/*** const ***/
+
+const kiloVersion = "0.0.1"
+
 /*** data ***/
 
 // エディタ状態
@@ -134,9 +138,15 @@ func getWindowsSize() (int, int, error) {
 // 行を描画
 func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
-		*ab += "~"
-		*ab += "\x1b[K"
+		if y == ec.screenRows/3 {
+			welcome := fmt.Sprintf("kilo editor -- version %s", kiloVersion)
+			welcomeLen := min(len(welcome), ec.screenCols)
+			*ab += welcome[:welcomeLen]
+		} else {
+			*ab += "~"
+		}
 
+		*ab += "\x1b[K"
 		if y < ec.screenRows-1 {
 			*ab += "\r\n"
 		}

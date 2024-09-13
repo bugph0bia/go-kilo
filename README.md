@@ -550,3 +550,14 @@ Goにはstring型があるのでほぼコードを書かずに完了。
 #### 実践
 
 チュートリアル通りのコードを追加。  
+
+### [3-14. Welcome message](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#welcome-message)
+
+#### チュートリアル
+
+- エディタの名前とバージョンを表示する。
+    - スクリーン幅が小さい場合は文字列を切り詰めて表示する。
+
+#### 実践
+
+Goではstring型やスライスを使用できるので簡単に実装できる。  
