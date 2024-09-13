@@ -12,8 +12,13 @@ import (
 
 /*** data ***/
 
-// ターミナルの初期モード
-var origTermios *term.State
+// エディタ状態
+type editorConfig struct {
+	// ターミナルの初期モード
+	origTermios *term.State
+}
+
+var ec editorConfig
 
 /*** terminal ***/
 
@@ -28,7 +33,7 @@ func ctrlKey(r rune) rune {
 
 // ターミナルをRAWモードから復帰する
 func disableRawMode() {
-	term.Restore(syscall.Stdin, origTermios)
+	term.Restore(syscall.Stdin, ec.origTermios)
 }
 
 // ターミナルをRAWモードにする
@@ -44,7 +49,7 @@ func enableRawMode() {
 	if err != nil {
 		panic(err)
 	}
-	origTermios = t
+	ec.origTermios = t
 
 	// ターミナルをRAWモードに設定する
 	termios, err := unix.IoctlGetTermios(syscall.Stdin, unix.TCGETS)
