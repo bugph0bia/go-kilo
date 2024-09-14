@@ -343,6 +343,10 @@ func editorMoveCursor(key int) {
 	case arrowLeft:
 		if ec.cx != 0 {
 			ec.cx--
+		} else if ec.cy > 0 {
+			// 行頭からは前の行の末尾へ移動
+			ec.cy--
+			ec.cx = len(ec.row[ec.cy])
 		}
 	case arrowRight:
 		if ec.cx < len(row) {
