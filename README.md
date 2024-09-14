@@ -599,3 +599,13 @@ GoにはEnumはないので、constとiotaを使用する。
 文字コードを表すのにrune型を使ってきたが、ここで文字コードではない 1000～1004 の数値を保持することになったため、int型に変更する。runeはUnicodeコードポイントを保持する型であり、1000～1004も別の文字を表すコード二対応してしまうため。  
 
 `Ctrl-[` が ESC に対応するという点は、3-1章に出てきた、上位3ビットを落とすとCtrl+キーを押したときのコードに対応する事実が、英字だけでなく記号にも適用されることを意味している。  
+
+### [3-17. Prevent moving the cursor off screen](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#prevent-moving-the-cursor-off-screen)
+
+#### チュートリアル
+
+- カーソルが画面外に行かないように境界値チェックを設ける。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  

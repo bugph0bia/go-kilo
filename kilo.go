@@ -221,13 +221,21 @@ func editorRefreshScreen() {
 func editorMoveCursor(key int) {
 	switch key {
 	case arrowLeft:
-		ec.cx--
+		if ec.cx != 0 {
+			ec.cx--
+		}
 	case arrowRight:
-		ec.cx++
+		if ec.cx != ec.screenCols-1 {
+			ec.cx++
+		}
 	case arrowUp:
-		ec.cy--
+		if ec.cy != 0 {
+			ec.cy--
+		}
 	case arrowDown:
-		ec.cy++
+		if ec.cy != ec.screenRows-1 {
+			ec.cy++
+		}
 	}
 }
 
