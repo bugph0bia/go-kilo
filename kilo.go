@@ -26,6 +26,8 @@ const (
 	arrowRight
 	arrowUp
 	arrowDown
+	homeKey
+	endKey
 	pageUp
 	pageDown
 )
@@ -126,6 +128,10 @@ func editorReadKey() int {
 				}
 				if seq[2] == '~' {
 					switch seq[1] {
+					case '1', '7':
+						return homeKey
+					case '4', '8':
+						return endKey
 					case '5':
 						return pageUp
 					case '6':
@@ -142,7 +148,18 @@ func editorReadKey() int {
 					return arrowRight
 				case 'D':
 					return arrowLeft
+				case 'H':
+					return homeKey
+				case 'F':
+					return endKey
 				}
+			}
+		} else if seq[0] == 'O' {
+			switch seq[1] {
+			case 'H':
+				return homeKey
+			case 'F':
+				return endKey
 			}
 		}
 		return '\x1b'
@@ -269,6 +286,12 @@ func editorProcessKeypress() bool {
 	case ctrlKey('q'):
 		// Ctrl-Q: プログラム終了
 		quit = true
+
+	case homeKey:
+		ec.cx = 0
+
+	case endKey:
+		ec.cx = ec.screenCols - 1
 
 	case pageUp, pageDown:
 		// ページ移動

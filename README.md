@@ -622,3 +622,16 @@ GoにはEnumはないので、constとiotaを使用する。
 #### 実践
 
 GoだとCに比べて少しコードが長くなる。三項演算子が使えないのは残念。  
+
+### [3-18. The `Home` and `End` keys)[https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#the-home-and-end-keys]
+
+#### チュートリアル
+
+- `Home` `End` キーに対応する。ターミナルエミュレータによって送られるエスケープシーケンスにバリエーションがある。これらすべてに対応する。
+- `Home` は "\x1b[1~" "\x1b[7~" "\x1b[H" "\x1bOH" のいずれか。
+- `End` は "\x1b[4~" "\x1b[8~" "\x1b[F" "\x1bOF" のいずれか。
+- それぞれ、現在行の左端、右端二移動するコードとする。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  
