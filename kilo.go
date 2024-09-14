@@ -26,6 +26,8 @@ const (
 	arrowRight
 	arrowUp
 	arrowDown
+	pageUp
+	pageDown
 )
 
 /*** data ***/
@@ -104,6 +106,7 @@ func editorReadKey() int {
 
 	// エスケープシーケンスを処理
 	if b[0] == '\x1b' {
+		// 後続コードを読み取る
 		seq := make([]byte, 3)
 		n0, _ := syscall.Read(syscall.Stdin, seq[0:1])
 		if n0 != 1 {
@@ -113,17 +116,33 @@ func editorReadKey() int {
 		if n1 != 1 {
 			return '\x1b'
 		}
-		if seq[0] == '[' {
-			switch seq[1] {
-			case 'A':
-				return arrowUp
-			case 'B':
-				return arrowDown
-			case 'C':
-				return arrowRight
-			case 'D':
-				return arrowLeft
 
+		if seq[0] == '[' {
+			if seq[1] >= '0' && seq[1] <= '9' {
+				// 後続コードを読み取る
+				n2, _ := syscall.Read(syscall.Stdin, seq[2:3])
+				if n2 != 1 {
+					return '\x1b'
+				}
+				if seq[2] == '~' {
+					switch seq[1] {
+					case '5':
+						return pageUp
+					case '6':
+						return pageDown
+					}
+				}
+			} else {
+				switch seq[1] {
+				case 'A':
+					return arrowUp
+				case 'B':
+					return arrowDown
+				case 'C':
+					return arrowRight
+				case 'D':
+					return arrowLeft
+				}
 			}
 		}
 		return '\x1b'
@@ -250,6 +269,18 @@ func editorProcessKeypress() bool {
 	case ctrlKey('q'):
 		// Ctrl-Q: プログラム終了
 		quit = true
+
+	case pageUp, pageDown:
+		// ページ移動
+		var c2 int
+		if c == pageUp {
+			c2 = arrowUp
+		} else {
+			c2 = arrowDown
+		}
+		for i := 0; i < ec.screenRows; i++ {
+			editorMoveCursor(c2)
+		}
 
 	case arrowUp, arrowDown, arrowLeft, arrowRight:
 		// カーソル移動

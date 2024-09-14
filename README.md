@@ -609,3 +609,16 @@ GoにはEnumはないので、constとiotaを使用する。
 #### 実践
 
 チュートリアル通りのコードを追加。  
+
+### [3-18. The `Page Up` and `Page Down` keys](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#the-page-up-and-page-down-keys)
+
+#### チュートリアル
+
+- `Page UP` `Page Down` キーに対応する。
+- `Page UP` は "\x1b[5~"、`Page Down` は "\x1b[6~" が送られる。
+- まずは、それぞれ画面の一番上と一番下にカーソル移動するコードを実装する。
+    - スクリーンの行数だけ上矢印または下矢印のコードを内部的に発行する。
+
+#### 実践
+
+GoだとCに比べて少しコードが長くなる。三項演算子が使えないのは残念。  
