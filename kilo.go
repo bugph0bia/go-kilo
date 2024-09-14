@@ -43,9 +43,9 @@ type editorConfig struct {
 	screenRows, screenCols int
 	// ターミナルの初期モード
 	origTermios *term.State
-	// カレント行データ
+	// 行バッファ
 	numRows int
-	row     string
+	row     []string
 }
 
 var ec editorConfig
@@ -213,8 +213,17 @@ func getWindowsSize() (int, int, error) {
 	return int(ws.Row), int(ws.Col), nil
 }
 
+/*** row operations ***/
+
+// 行データ追加
+func editorAppendRow(newRow string) {
+	ec.row = append(ec.row, newRow)
+	ec.numRows++
+}
+
 /*** file i/o ***/
 
+// ファイル読み込み
 func editorOpen(fileName string) {
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -223,9 +232,9 @@ func editorOpen(fileName string) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	scanner.Scan()
-	ec.row = scanner.Text()
-	ec.numRows = 1
+	for scanner.Scan() {
+		editorAppendRow(scanner.Text())
+	}
 }
 
 /*** output ***/
@@ -250,8 +259,8 @@ func editorDrawRows(ab *string) {
 				*ab += "~"
 			}
 		} else {
-			len := min(len(ec.row), ec.screenCols)
-			*ab += ec.row[:len]
+			len := min(len(ec.row[y]), ec.screenCols)
+			*ab += ec.row[y][:len]
 		}
 
 		*ab += "\x1b[K"
