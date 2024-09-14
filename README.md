@@ -696,3 +696,12 @@ string型のスライスを使用することで、チュートリアルが大�
 #### 実践
 
 チュートリアル通りのコードを追加。  
+
+### [4-5. Limit scrolling to the right](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#limit-scrolling-to-the-right)
+
+- 現在行と現在列の1つ次までしかカーソル移動しないように制限をする。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  
+この時点では、`End` キーや、上下移動時にうまく制限はかからない。TAB文字や多バイト文字があるときもうまくいかない。  

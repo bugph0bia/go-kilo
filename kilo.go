@@ -333,13 +333,21 @@ func editorRefreshScreen() {
 
 // カーソル移動
 func editorMoveCursor(key int) {
+	// 現在行
+	var row string
+	if ec.cy < ec.numRows {
+		row = ec.row[ec.cy]
+	}
+
 	switch key {
 	case arrowLeft:
 		if ec.cx != 0 {
 			ec.cx--
 		}
 	case arrowRight:
-		ec.cx++
+		if ec.cx < len(row) {
+			ec.cx++
+		}
 	case arrowUp:
 		if ec.cy != 0 {
 			ec.cy--
