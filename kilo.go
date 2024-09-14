@@ -282,8 +282,8 @@ func editorDrawRows(ab *string) {
 			}
 		} else {
 			// 行バッファの内容を出力
-			len := min(len(ec.row[fileRow]), ec.screenCols)
-			*ab += ec.row[fileRow][:len]
+			rowLen := min(len(ec.row[fileRow]), ec.screenCols)
+			*ab += ec.row[fileRow][:rowLen]
 		}
 
 		// カーソル位置を復帰して改行
