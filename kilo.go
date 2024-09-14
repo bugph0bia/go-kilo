@@ -20,7 +20,7 @@ import (
 // バージョン
 const kiloVersion = "0.0.1"
 
-// 矢印キー
+// 特殊キー
 const (
 	arrowLeft = iota + 1000
 	arrowRight
@@ -35,7 +35,7 @@ const (
 
 /*** data ***/
 
-// エディタ状態
+// エディタステータス
 type editorConfig struct {
 	// カーソル位置
 	cx, cy int
@@ -175,7 +175,7 @@ func editorReadKey() int {
 
 // カーソル位置を取得
 func getCursorPosition() (int, int, error) {
-	// カーソル位置を問い合わせ
+	// カーソル位置問い合わせクエリ
 	_, err := syscall.Write(syscall.Stdin, []byte("\x1b[6n"))
 	if err != nil {
 		return 0, 0, err
@@ -183,6 +183,7 @@ func getCursorPosition() (int, int, error) {
 
 	fmt.Print("\r\n")
 
+	// カーソル位置の結果を取得
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	s := scanner.Text()
@@ -201,9 +202,11 @@ func getCursorPosition() (int, int, error) {
 
 // ウィンドウサイズを取得
 func getWindowsSize() (int, int, error) {
+	// システムコールからウィンドウサイズを取得
 	ws, err := unix.IoctlGetWinsize(syscall.Stdin, unix.TIOCGWINSZ)
 	if err != nil || ws.Col == 0 {
-		// カーソルをスクリーン右下端に移動
+		// ウィンドウサイズ取得の予備的な手段を用意
+		// カーソルをスクリーン右下端に移動して位置を取得する方法
 		_, err := syscall.Write(syscall.Stdin, []byte("\x1b[999C\x1b[999B"))
 		if err != nil {
 			return 0, 0, err
@@ -225,12 +228,14 @@ func editorAppendRow(newRow string) {
 
 // ファイル読み込み
 func editorOpen(fileName string) {
+	// ファイルオープン
 	f, err := os.Open(fileName)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
+	// 全行読み込み
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		editorAppendRow(scanner.Text())
@@ -242,6 +247,7 @@ func editorOpen(fileName string) {
 // 行を描画
 func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
+		// ブランク行の表示
 		if y >= ec.numRows {
 			// 表示するテキストデータが無い（ブランクで起動している）状態であれば、
 			// スクリーンの上から1/3の位置にエディタ名とバージョンを表示する
@@ -256,13 +262,16 @@ func editorDrawRows(ab *string) {
 				*ab += strings.Repeat(" ", padding)
 				*ab += welcome[:welcomeLen]
 			} else {
+				// ブランク行は ~ で埋める
 				*ab += "~"
 			}
 		} else {
+			// 行バッファの内容を出力
 			len := min(len(ec.row[y]), ec.screenCols)
 			*ab += ec.row[y][:len]
 		}
 
+		// カーソル位置を復帰して改行
 		*ab += "\x1b[K"
 		if y < ec.screenRows-1 {
 			*ab += "\r\n"
@@ -275,16 +284,19 @@ func editorRefreshScreen() {
 	// 出力用文字列バッファ
 	var ab string
 
-	ab += "\x1b[?25l" // カーソルを非表示
-	ab += "\x1b[H"    // カーソル位置を左上へ
+	// カーソルを非表示にして左上へ
+	ab += "\x1b[?25l"
+	ab += "\x1b[H"
 
 	// 行を描画
 	editorDrawRows(&ab)
 
-	ab += fmt.Sprintf("\x1b[%d;%dH", ec.cy+1, ec.cx+1) // カーソル位置を設定
-	ab += "\x1b[?25h"                                  // カーソルを表示
+	// カーソルを指定位置に移動して表示
+	ab += fmt.Sprintf("\x1b[%d;%dH", ec.cy+1, ec.cx+1)
+	ab += "\x1b[?25h"
 
-	syscall.Write(syscall.Stdin, []byte(ab))
+	// テキストバッファの内容を出力
+	syscall.Write(syscall.Stdout, []byte(ab))
 }
 
 /*** input ***/
@@ -324,13 +336,15 @@ func editorProcessKeypress() bool {
 		quit = true
 
 	case homeKey:
+		// カーソルを左端へ移動
 		ec.cx = 0
 
 	case endKey:
+		// カーソルを右端へ移動
 		ec.cx = ec.screenCols - 1
 
 	case pageUp, pageDown:
-		// ページ移動
+		// カーソルを上端／下端へ移動
 		var c2 int
 		if c == pageUp {
 			c2 = arrowUp
@@ -342,7 +356,7 @@ func editorProcessKeypress() bool {
 		}
 
 	case arrowUp, arrowDown, arrowLeft, arrowRight:
-		// カーソル移動
+		// カーソルを上下左右に移動
 		editorMoveCursor(c)
 	}
 	return quit
