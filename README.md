@@ -95,7 +95,7 @@ Goでは明示的に return を書かなければ 0 を返すので、終了コ�
 
 Go用のMakefileを追加。  
 
-## [2. Entering raw mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html)
+### [2. Entering raw mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html)
 
 #### チュートリアル
 
@@ -112,7 +112,7 @@ Ctrl+DやCtrl+Cで終了する点はチュートリアルと同じ。
 
 VSCodeのデバッグ中に標準入力をうまく扱えなかったため、launch.jsonに `"console": "integratedTerminal"` を追加して対処。  
 
-## [2-1. Press `q` to quit?](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#press-q-to-quit)
+### [2-1. Press `q` to quit?](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#press-q-to-quit)
 
 #### チュートリアル
 
@@ -122,7 +122,7 @@ VSCodeのデバッグ中に標準入力をうまく扱えなかったため、la
 
 `q` が入力された場合も狩猟するようにコードを修正。  
 
-## [2-2. Turn off echoing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-echoing)
+### [2-2. Turn off echoing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-echoing)
 
 #### チュートリアル
 
@@ -150,7 +150,7 @@ Go言語でターミナルの属性を取得/設定する方法を探したと�
 
 CではビットOFFするときに `flag &= ~BITS` と書くが、Goでは `flag &^= BITS` と書く。  
 
-## [2-3. Disable raw mode at exit](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-raw-mode-at-exit)
+### [2-3. Disable raw mode at exit](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-raw-mode-at-exit)
 
 #### チュートリアル
 
@@ -162,7 +162,7 @@ CではビットOFFするときに `flag &= ~BITS` と書くが、Goでは `flag
 Goでは `atexit()` の代わりに `defer` 文を使用可能。  
 前回と同様、`disableRawMode()` は実装する必要なし。  
 
-## [2-4. Turn off canonical mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-canonical-mode)
+### [2-4. Turn off canonical mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-canonical-mode)
 
 #### チュートリアル
 
@@ -173,7 +173,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`ICANON`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-## [2-5. Display keypresses](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#display-keypresses)
+### [2-5. Display keypresses](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#display-keypresses)
 
 #### チュートリアル
 
@@ -196,7 +196,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` でこの先に行う予定の実装を先行して対応しているため、`Ctrl+Z` などの動きはチュートリアル通りに試すことはできない。  
 
-## [2-6. Turn off `Ctrl-C` and `Ctrl-Z` signals](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-ctrl-c-and-ctrl-z-signals)
+### [2-6. Turn off `Ctrl-C` and `Ctrl-Z` signals](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-ctrl-c-and-ctrl-z-signals)
 
 #### チュートリアル
 
@@ -207,7 +207,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`ISIG`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-## [2-7. Disable `Ctrl-S` and `Ctrl-Q`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-s-and-ctrl-q)
+### [2-7. Disable `Ctrl-S` and `Ctrl-Q`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-s-and-ctrl-q)
 
 #### チュートリアル
 
@@ -217,7 +217,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`IXON`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-## [2-8. Disable `Ctrl-V`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-v)
+### [2-8. Disable `Ctrl-V`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#disable-ctrl-v)
 
 #### チュートリアル
 
@@ -227,7 +227,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`IEXTEN`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-## [2-9. Fix `Ctrl-M`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#fix-ctrl-m)
+### [2-9. Fix `Ctrl-M`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#fix-ctrl-m)
 
 #### チュートリアル
 
@@ -239,7 +239,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 
 `MakeRaw()` の中で、`ICRNL`フラグのOFFも行われているため、ここでは何もすることはない。  
 
-## [2-10. Turn off all output processing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-all-output-processing)
+### [2-10. Turn off all output processing](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#turn-off-all-output-processing)
 
 #### チュートリアル
 
@@ -256,7 +256,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 文字を出力するときの末尾の改行コードを `\n` から `\r\n` に変更することで、これまでは出力するたびにカーソルが中途半端な位置にあったが、毎回ターミナルの左端に戻るようになることを確認できる。  
 `\r` (CR: Carriage Return) の本来の役割を体感できる。  
 
-## [2-11. Miscellaneous flags](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
+### [2-11. Miscellaneous flags](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
 
 #### チュートリアル
 
@@ -276,7 +276,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 ここまでで各種フラグ操作について見てきたが、`MakeRaw()` ではチュートリアルのコードで行っていないフラグ制御がまだ行われている。  
 この違いについては一旦無視し、チュートリアルと動作の差異が出てきたら適宜確認することにして次に進む。  
 
-## [2-12. A timeout for `read()`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
+### [2-12. A timeout for `read()`](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#miscellaneous-flags)
 
 #### チュートリアル
 
@@ -299,7 +299,7 @@ Goでは `atexit()` の代わりに `defer` 文を使用可能。
 VMIN と VTIME に関しては、下記を参照。  
 http://www.unixwiz.net/techtips/termios-vmin-vtime.html
 
-## [2-13. Error handling](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#error-handling)
+### [2-13. Error handling](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#error-handling)
 
 #### チュートリアル
 
@@ -316,7 +316,7 @@ http://www.unixwiz.net/techtips/termios-vmin-vtime.html
 
 `syscall.EAGAIN` をエラーにしないようにするために、標準入力から読み出す関数も `syscall.Read()` に変更した。  
 
-## [2-14. Sections](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#sections)
+### [2-14. Sections](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html#sections)
 
 #### チュートリアル
 
@@ -326,7 +326,7 @@ http://www.unixwiz.net/techtips/termios-vmin-vtime.html
 
 チュートリアルではソースコードをセクションコメントで分割しているが、それには倣わないこととする。  
 
-## `MakeRaw()` を使用せずチュートリアルに合わせる方針に変更
+### `MakeRaw()` を使用せずチュートリアルに合わせる方針に変更
 
 ここまでターミナルをRAWモードにする手段を `MakeRaw()` 呼び出しに頼ってきたが、結果的に 2-12 でチュートリアルの内容と乖離してしまった。  
 一旦は `MakeRaw()` を使う方針で進めようと考えていたが、チュートリアルのコードをトレースすることも可能なので、方針変更して、チュートリアル通りに進めることとした。  
