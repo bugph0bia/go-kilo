@@ -43,6 +43,9 @@ type editorConfig struct {
 	screenRows, screenCols int
 	// ターミナルの初期モード
 	origTermios *term.State
+	// カレント行データ
+	numRows int
+	eRow    string
 }
 
 var ec editorConfig
@@ -210,24 +213,36 @@ func getWindowsSize() (int, int, error) {
 	return int(ws.Row), int(ws.Col), nil
 }
 
+/*** file i/o ***/
+
+func editorOpen() {
+	ec.eRow = "Hello, world!"
+	ec.numRows = 1
+}
+
 /*** output ***/
 
 // 行を描画
 func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
-		// スクリーンの上から1/3の位置にエディタ名とバージョンを表示
-		if y == ec.screenRows/3 {
-			welcome := fmt.Sprintf("kilo editor -- version %s", kiloVersion)
-			welcomeLen := min(len(welcome), ec.screenCols)
-			padding := (ec.screenCols - welcomeLen) / 2
-			if padding > 0 {
+		if y >= ec.numRows {
+			// スクリーンの上から1/3の位置にエディタ名とバージョンを表示
+			if y == ec.screenRows/3 {
+				welcome := fmt.Sprintf("kilo editor -- version %s", kiloVersion)
+				welcomeLen := min(len(welcome), ec.screenCols)
+				padding := (ec.screenCols - welcomeLen) / 2
+				if padding > 0 {
+					*ab += "~"
+					padding--
+				}
+				*ab += strings.Repeat(" ", padding)
+				*ab += welcome[:welcomeLen]
+			} else {
 				*ab += "~"
-				padding--
 			}
-			*ab += strings.Repeat(" ", padding)
-			*ab += welcome[:welcomeLen]
 		} else {
-			*ab += "~"
+			len := min(len(ec.eRow), ec.screenCols)
+			*ab += ec.eRow[:len]
 		}
 
 		*ab += "\x1b[K"
@@ -322,6 +337,7 @@ func initEditor() {
 	// カーソル位置初期化
 	ec.cx = 0
 	ec.cy = 0
+	ec.numRows = 0
 
 	// ウィンドウサイズ取得
 	rows, cols, err := getWindowsSize()
@@ -344,6 +360,7 @@ func main() {
 
 	// 初期化
 	initEditor()
+	editorOpen()
 
 	// メインループ
 	for {

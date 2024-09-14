@@ -646,3 +646,15 @@ GoだとCに比べて少しコードが長くなる。三項演算子が使え�
 #### 実践
 
 チュートリアル通りのコードを追加。  
+
+## [4. A text viewer](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html)
+
+### [4-1. A line viewer](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#a-line-viewer)
+
+#### チュートリアル
+
+- まずは "Hello, World!" と固定的に表示するコードを追加する。
+
+#### 実践
+
+1行分のテキストを保持するデータ方も、Goならstring型を使用するだけで済む。  
