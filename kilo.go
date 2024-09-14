@@ -45,7 +45,7 @@ type editorConfig struct {
 	origTermios *term.State
 	// カレント行データ
 	numRows int
-	eRow    string
+	row     string
 }
 
 var ec editorConfig
@@ -215,8 +215,16 @@ func getWindowsSize() (int, int, error) {
 
 /*** file i/o ***/
 
-func editorOpen() {
-	ec.eRow = "Hello, world!"
+func editorOpen(fileName string) {
+	f, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	scanner.Scan()
+	ec.row = scanner.Text()
 	ec.numRows = 1
 }
 
@@ -226,8 +234,9 @@ func editorOpen() {
 func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
 		if y >= ec.numRows {
-			// スクリーンの上から1/3の位置にエディタ名とバージョンを表示
-			if y == ec.screenRows/3 {
+			// 表示するテキストデータが無い（ブランクで起動している）状態であれば、
+			// スクリーンの上から1/3の位置にエディタ名とバージョンを表示する
+			if ec.numRows == 0 && y == ec.screenRows/3 {
 				welcome := fmt.Sprintf("kilo editor -- version %s", kiloVersion)
 				welcomeLen := min(len(welcome), ec.screenCols)
 				padding := (ec.screenCols - welcomeLen) / 2
@@ -241,8 +250,8 @@ func editorDrawRows(ab *string) {
 				*ab += "~"
 			}
 		} else {
-			len := min(len(ec.eRow), ec.screenCols)
-			*ab += ec.eRow[:len]
+			len := min(len(ec.row), ec.screenCols)
+			*ab += ec.row[:len]
 		}
 
 		*ab += "\x1b[K"
@@ -360,7 +369,10 @@ func main() {
 
 	// 初期化
 	initEditor()
-	editorOpen()
+	// ファイル読み込み
+	if len(os.Args) >= 2 {
+		editorOpen(os.Args[1])
+	}
 
 	// メインループ
 	for {
