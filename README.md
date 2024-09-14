@@ -685,3 +685,14 @@ string型のスライスを使用することで、チュートリアルが大�
 #### 実践
 
 チュートリアル通りのコードを追加。  
+
+### [4-4. Horizontal scrolling](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#horizontal-scrolling)
+
+#### チュートリアル
+
+- 列方向のオフセットを管理することで垂直スクロールを表現する。
+- カーソルの x 位置を制御する処理をすべて見直す。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  

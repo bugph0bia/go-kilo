@@ -39,8 +39,9 @@ const (
 type editorConfig struct {
 	// カーソル位置
 	cx, cy int
-	// 行オフセット
+	// オフセット
 	rowOff int
+	colOff int
 	// スクリーンサイズ
 	screenRows, screenCols int
 	// ターミナルの初期モード
@@ -256,6 +257,14 @@ func editorScroll() {
 	if ec.cy >= ec.rowOff+ec.screenRows {
 		ec.rowOff = ec.cy - ec.screenRows + 1
 	}
+	// 左方向
+	if ec.cx < ec.colOff {
+		ec.colOff = ec.cx
+	}
+	// 右方向
+	if ec.cx >= ec.colOff+ec.screenCols {
+		ec.colOff = ec.cx - ec.screenCols + 1
+	}
 }
 
 // 行を描画
@@ -282,8 +291,11 @@ func editorDrawRows(ab *string) {
 			}
 		} else {
 			// 行バッファの内容を出力
-			rowLen := min(len(ec.row[fileRow]), ec.screenCols)
-			*ab += ec.row[fileRow][:rowLen]
+			rowLen := max(len(ec.row[fileRow])-ec.colOff, 0)
+			rowLen = min(rowLen, ec.screenCols)
+			if rowLen > 0 {
+				*ab += ec.row[fileRow][ec.colOff : ec.colOff+rowLen]
+			}
 		}
 
 		// カーソル位置を復帰して改行
@@ -310,7 +322,7 @@ func editorRefreshScreen() {
 	editorDrawRows(&ab)
 
 	// カーソルを指定位置に移動して表示
-	ab += fmt.Sprintf("\x1b[%d;%dH", (ec.cy-ec.rowOff)+1, ec.cx+1)
+	ab += fmt.Sprintf("\x1b[%d;%dH", (ec.cy-ec.rowOff)+1, (ec.cx-ec.colOff)+1)
 	ab += "\x1b[?25h"
 
 	// テキストバッファの内容を出力
@@ -327,9 +339,7 @@ func editorMoveCursor(key int) {
 			ec.cx--
 		}
 	case arrowRight:
-		if ec.cx != ec.screenCols-1 {
-			ec.cx++
-		}
+		ec.cx++
 	case arrowUp:
 		if ec.cy != 0 {
 			ec.cy--
@@ -388,6 +398,7 @@ func initEditor() {
 	ec.cx = 0
 	ec.cy = 0
 	ec.rowOff = 0
+	ec.colOff = 0
 	ec.numRows = 0
 
 	// ウィンドウサイズ取得
