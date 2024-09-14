@@ -39,6 +39,8 @@ const (
 type editorConfig struct {
 	// カーソル位置
 	cx, cy int
+	// 行オフセット
+	rowOff int
 	// スクリーンサイズ
 	screenRows, screenCols int
 	// ターミナルの初期モード
@@ -244,11 +246,24 @@ func editorOpen(fileName string) {
 
 /*** output ***/
 
+// スクロール処理
+func editorScroll() {
+	// 上方向
+	if ec.cy < ec.rowOff {
+		ec.rowOff = ec.cy
+	}
+	// 下方向
+	if ec.cy >= ec.rowOff+ec.screenRows {
+		ec.rowOff = ec.cy - ec.screenRows + 1
+	}
+}
+
 // 行を描画
 func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
+		fileRow := y + ec.rowOff
 		// ブランク行の表示
-		if y >= ec.numRows {
+		if fileRow >= ec.numRows {
 			// 表示するテキストデータが無い（ブランクで起動している）状態であれば、
 			// スクリーンの上から1/3の位置にエディタ名とバージョンを表示する
 			if ec.numRows == 0 && y == ec.screenRows/3 {
@@ -267,8 +282,8 @@ func editorDrawRows(ab *string) {
 			}
 		} else {
 			// 行バッファの内容を出力
-			len := min(len(ec.row[y]), ec.screenCols)
-			*ab += ec.row[y][:len]
+			len := min(len(ec.row[fileRow]), ec.screenCols)
+			*ab += ec.row[fileRow][:len]
 		}
 
 		// カーソル位置を復帰して改行
@@ -281,6 +296,9 @@ func editorDrawRows(ab *string) {
 
 // リフレッシュ
 func editorRefreshScreen() {
+	// スクロール処理
+	editorScroll()
+
 	// 出力用文字列バッファ
 	var ab string
 
@@ -292,7 +310,7 @@ func editorRefreshScreen() {
 	editorDrawRows(&ab)
 
 	// カーソルを指定位置に移動して表示
-	ab += fmt.Sprintf("\x1b[%d;%dH", ec.cy+1, ec.cx+1)
+	ab += fmt.Sprintf("\x1b[%d;%dH", (ec.cy-ec.rowOff)+1, ec.cx+1)
 	ab += "\x1b[?25h"
 
 	// テキストバッファの内容を出力
@@ -317,7 +335,7 @@ func editorMoveCursor(key int) {
 			ec.cy--
 		}
 	case arrowDown:
-		if ec.cy != ec.screenRows-1 {
+		if ec.cy < ec.numRows {
 			ec.cy++
 		}
 	}
@@ -369,6 +387,7 @@ func initEditor() {
 	// カーソル位置初期化
 	ec.cx = 0
 	ec.cy = 0
+	ec.rowOff = 0
 	ec.numRows = 0
 
 	// ウィンドウサイズ取得
