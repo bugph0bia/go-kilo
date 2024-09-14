@@ -26,6 +26,7 @@ const (
 	arrowRight
 	arrowUp
 	arrowDown
+	delKey
 	homeKey
 	endKey
 	pageUp
@@ -130,6 +131,8 @@ func editorReadKey() int {
 					switch seq[1] {
 					case '1', '7':
 						return homeKey
+					case '3':
+						return delKey
 					case '4', '8':
 						return endKey
 					case '5':
