@@ -351,6 +351,9 @@ func editorMoveCursor(key int) {
 	case arrowRight:
 		if ec.cx < len(row) {
 			ec.cx++
+		} else if ec.cy < len(ec.row) {
+			ec.cy++
+			ec.cx = 0
 		}
 	case arrowUp:
 		if ec.cy != 0 {
