@@ -357,6 +357,12 @@ func editorMoveCursor(key int) {
 			ec.cy++
 		}
 	}
+
+	// 新しい行の末尾にカーソルをスナップ
+	if ec.cy < ec.numRows {
+		row = ec.row[ec.cy]
+	}
+	ec.cx = min(ec.cx, len(row))
 }
 
 // キー入力を待ち、入力されたキーに対応する処理を行う

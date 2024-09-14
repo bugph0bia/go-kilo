@@ -705,3 +705,13 @@ string型のスライスを使用することで、チュートリアルが大�
 
 チュートリアル通りのコードを追加。  
 この時点では、`End` キーや、上下移動時にうまく制限はかからない。TAB文字や多バイト文字があるときもうまくいかない。  
+
+### [4-6. Snap cursor to end of line](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#snap-cursor-to-end-of-line)
+
+#### チュートリアル
+
+- 長い行の末尾にカーソルを置いて、上下の短い行に移動したときにカーソルを末尾にスナップする処理を追加する。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  
