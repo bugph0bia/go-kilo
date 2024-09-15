@@ -55,10 +55,12 @@ type editorConfig struct {
 	rowOff, colOff int
 	// スクリーンサイズ
 	screenRows, screenCols int
-	// ターミナルの初期モード
-	origTermios *term.State
 	// 行バッファ
 	row []eRow
+	// ファイル名
+	fileName string
+	// ターミナルの初期モード
+	origTermios *term.State
 }
 
 var ec editorConfig
@@ -271,6 +273,8 @@ func editorAppendRow(s string) {
 
 // ファイル読み込み
 func editorOpen(fileName string) {
+	ec.fileName = fileName
+
 	// ファイルオープン
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -346,10 +350,40 @@ func editorDrawRows(ab *string) {
 
 		// カーソル位置を復帰して改行
 		*ab += "\x1b[K"
-		if y < ec.screenRows-1 {
-			*ab += "\r\n"
-		}
+		*ab += "\r\n"
 	}
+}
+
+// ステータスバーを描画
+func editorDrawStatusBar(ab *string) {
+	// 色反転
+	*ab += "\x1b[7m"
+
+	// 左側：ファイル名と全行数
+	fileName := ec.fileName
+	if fileName == "" {
+		fileName = "[No Name]"
+	}
+	status := fmt.Sprintf("%.20s - %d lines", fileName, len(ec.row))
+	stLen := min(len(status), ec.screenCols)
+
+	// 右側：現在行/全行数
+	rstatus := fmt.Sprintf("%d/%d", ec.cy+1, len(ec.row))
+	rstLen := len(rstatus)
+
+	*ab += status[:stLen]
+	// 右側テキストは表示する余裕がある場合にのみ表示する
+	between := ec.screenCols - stLen - rstLen
+	if between >= 0 {
+		*ab += strings.Repeat(" ", between)
+		*ab += rstatus
+	} else {
+		// 残りをスペースで埋める
+		*ab += strings.Repeat(" ", ec.screenCols-stLen)
+	}
+
+	// 色反転解除
+	*ab += "\x1b[m"
 }
 
 // リフレッシュ
@@ -364,8 +398,10 @@ func editorRefreshScreen() {
 	ab += "\x1b[?25l"
 	ab += "\x1b[H"
 
-	// 行を描画
+	// テキスト行を描画
 	editorDrawRows(&ab)
+	// ステータスバーを描画
+	editorDrawStatusBar(&ab)
 
 	// カーソルを指定位置に移動して表示
 	ab += fmt.Sprintf("\x1b[%d;%dH", (ec.cy-ec.rowOff)+1, (ec.rx-ec.colOff)+1)
@@ -483,6 +519,9 @@ func initEditor() {
 		panic(err)
 	}
 	ec.screenRows, ec.screenCols = rows, cols
+
+	// ステータスバーエリアを確保
+	ec.screenRows -= 1
 }
 
 func main() {
