@@ -35,20 +35,24 @@ const (
 
 /*** data ***/
 
+// エディタ行バッファ
+type eRow struct {
+	// テキスト
+	chars string
+}
+
 // エディタステータス
 type editorConfig struct {
 	// カーソル位置
 	cx, cy int
 	// オフセット
-	rowOff int
-	colOff int
+	rowOff, colOff int
 	// スクリーンサイズ
 	screenRows, screenCols int
 	// ターミナルの初期モード
 	origTermios *term.State
 	// 行バッファ
-	numRows int
-	row     []string
+	row []eRow
 }
 
 var ec editorConfig
@@ -222,9 +226,8 @@ func getWindowsSize() (int, int, error) {
 /*** row operations ***/
 
 // 行データ追加
-func editorAppendRow(newRow string) {
-	ec.row = append(ec.row, newRow)
-	ec.numRows++
+func editorAppendRow(s string) {
+	ec.row = append(ec.row, eRow{chars: s})
 }
 
 /*** file i/o ***/
@@ -272,10 +275,10 @@ func editorDrawRows(ab *string) {
 	for y := 0; y < ec.screenRows; y++ {
 		fileRow := y + ec.rowOff
 		// ブランク行の表示
-		if fileRow >= ec.numRows {
+		if fileRow >= len(ec.row) {
 			// 表示するテキストデータが無い（ブランクで起動している）状態であれば、
 			// スクリーンの上から1/3の位置にエディタ名とバージョンを表示する
-			if ec.numRows == 0 && y == ec.screenRows/3 {
+			if len(ec.row) == 0 && y == ec.screenRows/3 {
 				welcome := fmt.Sprintf("kilo editor -- version %s", kiloVersion)
 				welcomeLen := min(len(welcome), ec.screenCols)
 				padding := (ec.screenCols - welcomeLen) / 2
@@ -291,10 +294,10 @@ func editorDrawRows(ab *string) {
 			}
 		} else {
 			// 行バッファの内容を出力
-			rowLen := max(len(ec.row[fileRow])-ec.colOff, 0)
+			rowLen := max(len(ec.row[fileRow].chars)-ec.colOff, 0)
 			rowLen = min(rowLen, ec.screenCols)
 			if rowLen > 0 {
-				*ab += ec.row[fileRow][ec.colOff : ec.colOff+rowLen]
+				*ab += ec.row[fileRow].chars[ec.colOff : ec.colOff+rowLen]
 			}
 		}
 
@@ -335,8 +338,8 @@ func editorRefreshScreen() {
 func editorMoveCursor(key int) {
 	// 現在行
 	var row string
-	if ec.cy < ec.numRows {
-		row = ec.row[ec.cy]
+	if ec.cy < len(ec.row) {
+		row = ec.row[ec.cy].chars
 	}
 
 	switch key {
@@ -346,7 +349,7 @@ func editorMoveCursor(key int) {
 		} else if ec.cy > 0 {
 			// 行頭からは前の行の末尾へ移動
 			ec.cy--
-			ec.cx = len(ec.row[ec.cy])
+			ec.cx = len(ec.row[ec.cy].chars)
 		}
 	case arrowRight:
 		if ec.cx < len(row) {
@@ -360,14 +363,14 @@ func editorMoveCursor(key int) {
 			ec.cy--
 		}
 	case arrowDown:
-		if ec.cy < ec.numRows {
+		if ec.cy < len(ec.row) {
 			ec.cy++
 		}
 	}
 
 	// 新しい行の末尾にカーソルをスナップ
-	if ec.cy < ec.numRows {
-		row = ec.row[ec.cy]
+	if ec.cy < len(ec.row) {
+		row = ec.row[ec.cy].chars
 	}
 	ec.cx = min(ec.cx, len(row))
 }
@@ -420,7 +423,6 @@ func initEditor() {
 	ec.cy = 0
 	ec.rowOff = 0
 	ec.colOff = 0
-	ec.numRows = 0
 
 	// ウィンドウサイズ取得
 	rows, cols, err := getWindowsSize()
