@@ -439,15 +439,22 @@ func editorProcessKeypress() bool {
 		ec.cx = ec.screenCols - 1
 
 	case pageUp, pageDown:
-		// カーソルを上端／下端へ移動
-		var c2 int
+		var arrow int
 		if c == pageUp {
-			c2 = arrowUp
-		} else {
-			c2 = arrowDown
+			// 内部的に上矢印キーを発行
+			arrow = arrowUp
+			// カーソルを画面上端に移動
+			ec.cy = ec.rowOff
+		} else if c == pageDown {
+			// 内部的に下矢印キーを発行
+			arrow = arrowDown
+			// カーソルを画面下端に移動
+			ec.cy = ec.rowOff + ec.screenRows - 1
+			ec.cy = min(ec.cy, len(ec.row)) // ファイル終端より先には移動しない
 		}
+		// 1画面分の行数だけ上下カーソル移動を発行することで1ページ分のスクロールを行う
 		for i := 0; i < ec.screenRows; i++ {
-			editorMoveCursor(c2)
+			editorMoveCursor(arrow)
 		}
 
 	case arrowUp, arrowDown, arrowLeft, arrowRight:

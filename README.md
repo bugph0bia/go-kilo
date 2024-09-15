@@ -769,3 +769,15 @@ Goでは文字列と構造体の使い方が異なるため、`editorUpdateRow`�
 #### 実践
 
 チュートリアル通りのコードを追加。  
+
+### [4-11. Scrolling with `Page Up` and `Page Down`](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#scrolling-with-page-up-and-page-down)
+
+#### チュートリアル
+
+- `Page Up` と `Page Down` の処理を改良する。
+- それぞれ、1ページ分上下スクロールを行い、カーソル位置も上端／下端に移動する処理とする。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  
+本ツールではもともと pageUp / pageDown 用のif文を用意していたので、そちらに組み込むようにコードを実装。  
