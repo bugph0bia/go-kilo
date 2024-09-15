@@ -49,7 +49,8 @@ type eRow struct {
 // エディタステータス
 type editorConfig struct {
 	// カーソル位置
-	cx, cy int
+	cx, cy int // テキスト上の位置
+	rx     int // 画面上のレンダリング位置
 	// オフセット
 	rowOff, colOff int
 	// スクリーンサイズ
@@ -230,6 +231,19 @@ func getWindowsSize() (int, int, error) {
 
 /*** row operations ***/
 
+// 行内の位置 cx から rx を算出する
+func editorRowCxToRx(row eRow, cx int) int {
+	rx := 0
+	for j := 0; j < cx; j++ {
+		// タブ文字に相当するスペースの数を計算
+		if row.chars[j] == '\t' {
+			rx += (kiloTabStop - 1) - (rx % kiloTabStop)
+		}
+		rx++
+	}
+	return rx
+}
+
 // 更新済みの行データを返す
 func editorUpdateRow(s string) eRow {
 	// タブ文字をスペースに変換（8タブ）
@@ -275,6 +289,12 @@ func editorOpen(fileName string) {
 
 // スクロール処理
 func editorScroll() {
+	ec.rx = 0
+	// cx から rx を算出
+	if ec.cy < len(ec.row) {
+		ec.rx = editorRowCxToRx(ec.row[ec.cy], ec.cx)
+	}
+
 	// 上方向
 	if ec.cy < ec.rowOff {
 		ec.rowOff = ec.cy
@@ -284,12 +304,12 @@ func editorScroll() {
 		ec.rowOff = ec.cy - ec.screenRows + 1
 	}
 	// 左方向
-	if ec.cx < ec.colOff {
-		ec.colOff = ec.cx
+	if ec.rx < ec.colOff {
+		ec.colOff = ec.rx
 	}
 	// 右方向
-	if ec.cx >= ec.colOff+ec.screenCols {
-		ec.colOff = ec.cx - ec.screenCols + 1
+	if ec.rx >= ec.colOff+ec.screenCols {
+		ec.colOff = ec.rx - ec.screenCols + 1
 	}
 }
 
@@ -348,7 +368,7 @@ func editorRefreshScreen() {
 	editorDrawRows(&ab)
 
 	// カーソルを指定位置に移動して表示
-	ab += fmt.Sprintf("\x1b[%d;%dH", (ec.cy-ec.rowOff)+1, (ec.cx-ec.colOff)+1)
+	ab += fmt.Sprintf("\x1b[%d;%dH", (ec.cy-ec.rowOff)+1, (ec.rx-ec.colOff)+1)
 	ab += "\x1b[?25h"
 
 	// テキストバッファの内容を出力
@@ -444,6 +464,7 @@ func initEditor() {
 	// カーソル位置初期化
 	ec.cx = 0
 	ec.cy = 0
+	ec.rx = 0
 	ec.rowOff = 0
 	ec.colOff = 0
 
