@@ -20,6 +20,9 @@ import (
 // バージョン
 const kiloVersion = "0.0.1"
 
+// タブストップ数
+const kiloTabStop = 8
+
 // 特殊キー
 const (
 	arrowLeft = iota + 1000
@@ -39,6 +42,8 @@ const (
 type eRow struct {
 	// テキスト
 	chars string
+	// レンダリング
+	render string
 }
 
 // エディタステータス
@@ -225,9 +230,27 @@ func getWindowsSize() (int, int, error) {
 
 /*** row operations ***/
 
+// 更新済みの行データを返す
+func editorUpdateRow(s string) eRow {
+	// タブ文字をスペースに変換（8タブ）
+	tabs := strings.Count(s, "\t")
+	render := make([]byte, 0, len(s)+tabs*(kiloTabStop-1)) // 予め必要なバイト数をキャパシティに確保しておく
+	for j := 0; j < len(s); j++ {
+		if s[j] == '\t' {
+			render = append(render, ' ')
+			for len(render)%kiloTabStop != 0 {
+				render = append(render, ' ')
+			}
+		} else {
+			render = append(render, s[j])
+		}
+	}
+	return eRow{chars: s, render: string(render)}
+}
+
 // 行データ追加
 func editorAppendRow(s string) {
-	ec.row = append(ec.row, eRow{chars: s})
+	ec.row = append(ec.row, editorUpdateRow(s))
 }
 
 /*** file i/o ***/
@@ -294,10 +317,10 @@ func editorDrawRows(ab *string) {
 			}
 		} else {
 			// 行バッファの内容を出力
-			rowLen := max(len(ec.row[fileRow].chars)-ec.colOff, 0)
+			rowLen := max(len(ec.row[fileRow].render)-ec.colOff, 0)
 			rowLen = min(rowLen, ec.screenCols)
 			if rowLen > 0 {
-				*ab += ec.row[fileRow].chars[ec.colOff : ec.colOff+rowLen]
+				*ab += ec.row[fileRow].render[ec.colOff : ec.colOff+rowLen]
 			}
 		}
 
