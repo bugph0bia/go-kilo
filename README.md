@@ -781,3 +781,15 @@ Goでは文字列と構造体の使い方が異なるため、`editorUpdateRow`�
 
 チュートリアル通りのコードを追加。  
 本ツールではもともと pageUp / pageDown 用のif文を用意していたので、そちらに組み込むようにコードを実装。  
+
+### [4-12. Move to the end of the line with `End`](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#move-to-the-end-of-the-line-with-end)
+
+#### チュートリアル
+
+- `End` の処理を改良する。
+    - 画面の右端に移動するのではなく、現在行の末尾に移動する。
+- `Home` は変更する必要がない。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  

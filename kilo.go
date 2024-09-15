@@ -431,12 +431,14 @@ func editorProcessKeypress() bool {
 		quit = true
 
 	case homeKey:
-		// カーソルを左端へ移動
+		// カーソルを行頭へ移動
 		ec.cx = 0
 
 	case endKey:
-		// カーソルを右端へ移動
-		ec.cx = ec.screenCols - 1
+		// カーソルを行末へ移動
+		if ec.cy < len(ec.row) {
+			ec.cx = len(ec.row[ec.cy].chars)
+		}
 
 	case pageUp, pageDown:
 		var arrow int
