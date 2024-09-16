@@ -907,3 +907,15 @@ Goのコンパイラはシングルパスではないので、関数のプロト
 変数を利用する関数 `editorProcessKeypress()` の近くに定義する。  
 
 本コードでは `editorProcessKeypress()` の戻り値でプログラム終了を表現しているが、今回途中リターンが出てきたため、名前付き戻り値に変更することでコードを簡潔化する。  
+
+### [5-6. Simple backspacing](https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html#simple-backspacing)
+
+#### チュートリアル
+
+- バックスペースを実装する。
+    - `Backspace` `Ctrl-H` でカーソルの左側の1文字を削除、`Delete` はカーソル位置の文字を削除。
+    - `Delete` はカーソルを右に1つ移動してから `Backspace` を押したことと同じである。
+
+#### 実践
+
+`editorRowDelChar()` の呼び出し箇所は、Cだと前置デクリメントで書きたくなるところだが、Goのインクリメントとデクリメントには前置スタイルは存在せず、また式ではなく文であるため、他の式の中に混ぜて書けないことに注意。  

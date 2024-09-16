@@ -296,6 +296,19 @@ func editorRowInsertChar(row *eRow, at int, c rune) {
 	ec.dirty++
 }
 
+// 行データから文字を削除
+func editorRowDelChar(row *eRow, at int) {
+	// カーソル位置が行の範囲外なら終了
+	if at < 0 || at >= len(row.chars) {
+		return
+	}
+	// 文字を削除
+	row.chars = row.chars[:at] + row.chars[at+1:]
+	editorUpdateRow(row)
+
+	ec.dirty++
+}
+
 /*** editor operations ***/
 
 // 文字を挿入
@@ -307,6 +320,18 @@ func editorInsertChar(c rune) {
 	// 行データに文字を挿入
 	editorRowInsertChar(&ec.row[ec.cy], ec.cx, c)
 	ec.cx++
+}
+
+// 文字を削除
+func editorDelChar() {
+	// カーソル行が最終行の次であれば終了
+	if ec.cy == len(ec.row) {
+		return
+	}
+	if ec.cx > 0 {
+		editorRowDelChar(&ec.row[ec.cy], ec.cx-1)
+		ec.cx--
+	}
 }
 
 /*** file i/o ***/
@@ -617,7 +642,12 @@ func editorProcessKeypress() (quit bool) {
 
 	// BS, Ctrl-H, Del
 	case backspace, ctrlKey('h'), delKey:
-		// TODO:
+		// Delの場合はカーソルを1つ右に移動しておく
+		if c == delKey {
+			editorMoveCursor(arrowRight)
+		}
+		// カーソルの左側の文字を削除
+		editorDelChar()
 
 	// PageUp, PageDown
 	case pageUp, pageDown:
