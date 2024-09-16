@@ -302,6 +302,15 @@ func editorInsertChar(c rune) {
 
 /*** file i/o ***/
 
+// 行バッファの内容を文字列に変換
+func editorRowsToString() string {
+	lines := make([]string, 0)
+	for _, r := range ec.row {
+		lines = append(lines, r.chars)
+	}
+	return strings.Join(lines, "\n") + "\n"
+}
+
 // ファイル読み込み
 func editorOpen(fileName string) {
 	ec.fileName = fileName
@@ -318,6 +327,44 @@ func editorOpen(fileName string) {
 	for scanner.Scan() {
 		editorAppendRow(scanner.Text())
 	}
+}
+
+// ファイル保存
+func editorSave() {
+	if ec.fileName == "" {
+		return
+	}
+
+	// 行バッファの内容を取得
+	s := editorRowsToString()
+
+	// ファイルオープン
+	f, err := os.OpenFile(ec.fileName, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		// エラーメッセージ表示
+		editorSetStatusMessage("Can't save! I/O error: %s", err.Error())
+		return
+	}
+	defer f.Close()
+
+	// ファイルの中身を指定の長さで切り捨て
+	err = f.Truncate(int64(len(s)))
+	if err != nil {
+		// エラーメッセージ表示
+		editorSetStatusMessage("Can't save! I/O error: %s", err.Error())
+		return
+	}
+
+	// ファイルへ書き込み
+	_, err = fmt.Fprint(f, s)
+	if err != nil {
+		// エラーメッセージ表示
+		editorSetStatusMessage("Can't save! I/O error: %s", err.Error())
+		return
+	}
+
+	// 保存完了メッセージ表示
+	editorSetStatusMessage("%d bytes written to disk", len(s))
 }
 
 /*** output ***/
@@ -522,8 +569,13 @@ func editorProcessKeypress() bool {
 
 	// Ctrl-Q
 	case ctrlKey('q'):
-		// Ctrl-Q: プログラム終了
+		// プログラム終了
 		quit = true
+
+	// Ctrl-S
+	case ctrlKey('s'):
+		// ファイル保存
+		editorSave()
 
 	// Home
 	case homeKey:
@@ -619,7 +671,7 @@ func main() {
 	}
 
 	// ステータスメッセージを表示
-	editorSetStatusMessage("HELP: Ctrl-Q = quit")
+	editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit")
 
 	// メインループ
 	for {
