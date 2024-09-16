@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"time"
 	"unicode/utf8"
 
 	"golang.org/x/sys/unix"
@@ -59,6 +60,9 @@ type editorConfig struct {
 	row []eRow
 	// ファイル名
 	fileName string
+	// ステータスメッセージ
+	statusMsg     string
+	statusMsgTime time.Time
 	// ターミナルの初期モード
 	origTermios *term.State
 }
@@ -384,6 +388,19 @@ func editorDrawStatusBar(ab *string) {
 
 	// 色反転解除
 	*ab += "\x1b[m"
+	*ab += "\r\n"
+}
+
+// メッセージバーを描画
+func editorDrawMessageBar(ab *string) {
+	// カーソル位置を復帰
+	*ab += "\x1b[K"
+	// メッセージを描画
+	msg := ec.statusMsg
+	msgLen := min(len(msg), ec.screenCols)
+	if msgLen > 0 && (time.Since(ec.statusMsgTime) < 5*time.Second) { // メッセージがセットされてから5秒以内に限る
+		*ab += msg[:msgLen]
+	}
 }
 
 // リフレッシュ
@@ -402,6 +419,8 @@ func editorRefreshScreen() {
 	editorDrawRows(&ab)
 	// ステータスバーを描画
 	editorDrawStatusBar(&ab)
+	// メッセージバーを描画
+	editorDrawMessageBar(&ab)
 
 	// カーソルを指定位置に移動して表示
 	ab += fmt.Sprintf("\x1b[%d;%dH", (ec.cy-ec.rowOff)+1, (ec.rx-ec.colOff)+1)
@@ -409,6 +428,12 @@ func editorRefreshScreen() {
 
 	// テキストバッファの内容を出力
 	syscall.Write(syscall.Stdout, []byte(ab))
+}
+
+// ステータスメッセージを表示
+func editorSetStatusMessage(format string, a ...any) {
+	ec.statusMsg = fmt.Sprintf(format, a...)
+	ec.statusMsgTime = time.Now()
 }
 
 /*** input ***/
@@ -520,8 +545,8 @@ func initEditor() {
 	}
 	ec.screenRows, ec.screenCols = rows, cols
 
-	// ステータスバーエリアを確保
-	ec.screenRows -= 1
+	// ステータスバー、ステータスメッセージを確保
+	ec.screenRows -= 2
 }
 
 func main() {
@@ -541,6 +566,9 @@ func main() {
 	if len(os.Args) >= 2 {
 		editorOpen(os.Args[1])
 	}
+
+	// ステータスメッセージを表示
+	editorSetStatusMessage("HELP: Ctrl-Q = quit")
 
 	// メインループ
 	for {
