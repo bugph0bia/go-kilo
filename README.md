@@ -850,3 +850,16 @@ Goの `time.Time` 型はUNIXタイムスタンプではなく 1年1月1日 0:00:
     - 多バイト文字については一旦考えないこととする。デバッグ時に読み込み対象とするファイルもASCIIのみで構成される Makefile にする。
 - 最終行に移動してから文字挿入し続けると panic が発生するバグが `editorMoveCursor()` に存在した。新しい行に移動したときのカーソルX位置が0にリセットされていなかったことが原因。修正する。
     - 4-6. Snap cursor to end of line で作り込んだバグ。
+
+### [5-2. Prevent inserting special characters](https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html#prevent-inserting-special-characters)
+
+- `Backspace` や `Enter` を押したときに特殊文字がそのまま挿入されてしまうことを防ぐ。
+- `Backspace` には "\r" や "\n" のようなバックスラッシュエスケープ表現が無いので、定数でASCIIコードの 127 を直接定義する。`Ctrl-H`も使用できる。
+    - ASCIIコード表では `Backspace` は 8 、`elete` は 127 だが、現在では `Backspace` が 127、`Delete` は "\x1b[3~" にマップされている。
+- `Enter` は "\r" と表現できる。一旦 TODO コメントだけ残しておく。
+- `Ctrl-L` はターミナルの画面リフレッシュ。これは無視する。
+- これまでに実装したものを除いたエスケープシーケンス（ファンクションキーなど、すべて `\x1b` から始まる）についても、すべて無視する。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  

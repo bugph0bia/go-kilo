@@ -26,6 +26,7 @@ const kiloTabStop = 8
 
 // 特殊キー
 const (
+	backspace = 127
 	arrowLeft = iota + 1000
 	arrowRight
 	arrowUp
@@ -515,20 +516,32 @@ func editorProcessKeypress() bool {
 	c := editorReadKey()
 
 	switch c {
+	// Enter
+	case '\r':
+		// TODO:
+
+	// Ctrl-Q
 	case ctrlKey('q'):
 		// Ctrl-Q: プログラム終了
 		quit = true
 
+	// Home
 	case homeKey:
 		// カーソルを行頭へ移動
 		ec.cx = 0
 
+	// End
 	case endKey:
 		// カーソルを行末へ移動
 		if ec.cy < len(ec.row) {
 			ec.cx = len(ec.row[ec.cy].chars)
 		}
 
+	// BS, Ctrl-H, Del
+	case backspace, ctrlKey('h'), delKey:
+		// TODO:
+
+	// PageUp, PageDown
 	case pageUp, pageDown:
 		var arrow rune
 		if c == pageUp {
@@ -548,10 +561,16 @@ func editorProcessKeypress() bool {
 			editorMoveCursor(arrow)
 		}
 
+	// 矢印キー
 	case arrowUp, arrowDown, arrowLeft, arrowRight:
 		// カーソルを上下左右に移動
 		editorMoveCursor(c)
 
+	// Ctrl-L, ESC
+	case ctrlKey('l'), '\x1b':
+		// 何もしない
+
+	// その他のキー
 	default:
 		// カーソル位置に文字を挿入
 		editorInsertChar(c)
