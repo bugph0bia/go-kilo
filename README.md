@@ -439,9 +439,9 @@ dataセクションも設けることとし、パッケージレベルの変数�
 
 #### 実践
 
-チュートリアルでは、エラー用の関数 `die()` の中にスクリーン消去処理を書いているが、本ツールでは `panic()` を利用している。  
+チュートリアルでは、エラー用の関数 `die()` の中にスクリーン消去処理を書いているが、本コードでは `panic()` を利用している。  
 また、`atexit()` の中にスクリーン消去処理を書くとエラーメッセージまで消えてしまうとあるが、Goの`panic()`はdeferを適切に処理してからエラーメッセージを表示してくれる。  
-このことから、本ツールではdeferを用いて前項で作成した `editorRefreshScreen()` を呼び出しすことでスクリーン消去することとした。  
+このことから、本コードではdeferを用いて前項で作成した `editorRefreshScreen()` を呼び出しすことでスクリーン消去することとした。  
 
 
 ### [3-6. Tildes](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#tildes)
@@ -464,7 +464,7 @@ dataセクションも設けることとし、パッケージレベルの変数�
 
 #### 実践
 
-チュートリアルではエディタの状態を保持するグローバル変数は `E` としているが、Goでは大文字の変数名は外部公開されてしまうため避けたい。そのため本ツールでは `ec` という変数名にする。  
+チュートリアルではエディタの状態を保持するグローバル変数は `E` としているが、Goでは大文字の変数名は外部公開されてしまうため避けたい。そのため本コードでは `ec` という変数名にする。  
 
 ### [3-8. Window size, the easy way](https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#window-size-the-easy-way)
 
@@ -737,7 +737,7 @@ string型のスライスを使用することで、チュートリアルが大�
 次の行に移動する前にファイルの末尾でないことを確認すべきである。  
 チュートリアルでは、 `else if (row && E.cx == row->size)` のように確認しており、ファイルの末尾にいる場合は `row == NULL` になっていることから、この条件でチェックが可能となっている。  
 ただし、後半の `E.cx == row->size` は直前の if の条件の逆であり冗長のように思える。  
-本ツールでは、`row == nil` になることはないため、別の条件式でファイル末尾でないことをチェックする必要がある。  
+本コードでは、`row == nil` になることはないため、別の条件式でファイル末尾でないことをチェックする必要がある。  
 
 ### [4-9. Rendering tabs](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#rendering-tabs)
 
@@ -780,7 +780,7 @@ Goでは文字列と構造体の使い方が異なるため、`editorUpdateRow`�
 #### 実践
 
 チュートリアル通りのコードを追加。  
-本ツールではもともと pageUp / pageDown 用のif文を用意していたので、そちらに組み込むようにコードを実装。  
+本コードではもともと pageUp / pageDown 用のif文を用意していたので、そちらに組み込むようにコードを実装。  
 
 ### [4-12. Move to the end of the line with `End`](https://viewsourcecode.org/snaptoken/kilo/04.aTextViewer.html#move-to-the-end-of-the-line-with-end)
 
@@ -894,3 +894,16 @@ Goのコンパイラはシングルパスではないので、関数のプロト
 フラグなのでbool型で表現することも考えたが、チュートリアルの説明に「どの程度ファイルが汚れているかを表現することもできるのでint型にしている」とあるので、それに倣うことにする。  
 その場合、厳密にいえばもはやフラグではない。  
 ただ、このチュートリアルの中ではフラグ（0か否か）の意味でしか使用しない模様。  
+
+### [5-5. Quit confirmation](https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html#quit-confirmation)
+
+#### チュートリアル
+
+- ダーティフラグを利用して、未保存の変更があるときに `Ctrl-Q` を押してプログラムを終了しようとしたときに、あと3回 `Ctrl-Q` を押すように要求する。
+
+#### 実践
+
+キー押下残り回数を保持する変数をチュートリアルでは静的変数としているが、Goには静的変数は無いためパッケージ変数で代用する。  
+変数を利用する関数 `editorProcessKeypress()` の近くに定義する。  
+
+本コードでは `editorProcessKeypress()` の戻り値でプログラム終了を表現しているが、今回途中リターンが出てきたため、名前付き戻り値に変更することでコードを簡潔化する。  

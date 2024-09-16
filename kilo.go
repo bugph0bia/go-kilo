@@ -24,6 +24,9 @@ const kiloVersion = "0.0.1"
 // タブストップ数
 const kiloTabStop = 8
 
+// 未保存の終了時のキー押下要求回数
+const kiloQuitTimes = 3
+
 // 特殊キー
 const (
 	backspace = 127
@@ -570,10 +573,11 @@ func editorMoveCursor(key rune) {
 	ec.cx = min(ec.cx, rowLen)
 }
 
-// キー入力を待ち、入力されたキーに対応する処理を行う
-func editorProcessKeypress() bool {
-	var quit bool
+// 未保存で終了するためのキー押下残り回数
+var quitTimes int = kiloQuitTimes
 
+// キー入力を待ち、入力されたキーに対応する処理を行う
+func editorProcessKeypress() (quit bool) {
 	// キー入力
 	c := editorReadKey()
 
@@ -584,6 +588,13 @@ func editorProcessKeypress() bool {
 
 	// Ctrl-Q
 	case ctrlKey('q'):
+		// 未保存の終了におけるキー押下回数が規定に満たない場合
+		if ec.dirty > 0 && quitTimes > 0 {
+			// メッセージを表示して残り回数をデクリメント
+			editorSetStatusMessage("WARNING!!! File has unsaved changes. Press Ctrl-Q %d more times to quit.", quitTimes)
+			quitTimes--
+			return
+		}
 		// プログラム終了
 		quit = true
 
@@ -642,7 +653,11 @@ func editorProcessKeypress() bool {
 		// カーソル位置に文字を挿入
 		editorInsertChar(c)
 	}
-	return quit
+
+	// 未保存で終了するためのキー押下残り回数をリセット
+	quitTimes = kiloQuitTimes
+
+	return
 }
 
 /*** init ***/
