@@ -283,6 +283,17 @@ func editorAppendRow(s string) {
 	ec.dirty++
 }
 
+// 行データを削除
+func editorDelRow(at int) {
+	// 対象が範囲外なら終了
+	if at < 0 || at >= len(ec.row) {
+		return
+	}
+	ec.row = ec.row[:at+(copy(ec.row[at:], ec.row[at+1:]))] // スライスからインデックス at の要素を削除して前詰め
+
+	ec.dirty++
+}
+
 // 行データに文字を挿入
 func editorRowInsertChar(row *eRow, at int, c rune) {
 	// カーソル位置が行の範囲外なら末尾へ追加
@@ -290,7 +301,16 @@ func editorRowInsertChar(row *eRow, at int, c rune) {
 		at = len(row.chars)
 	}
 	// 文字を挿入
-	row.chars = row.chars[:at] + string([]rune{c}) + row.chars[at:]
+	row.chars = row.chars[:at] + string(c) + row.chars[at:]
+	editorUpdateRow(row)
+
+	ec.dirty++
+}
+
+// 行データに文字列を連結
+func editorRowAppendString(row *eRow, s string) {
+	// 行データの末尾に文字列を連結
+	row.chars += s
 	editorUpdateRow(row)
 
 	ec.dirty++
@@ -328,9 +348,20 @@ func editorDelChar() {
 	if ec.cy == len(ec.row) {
 		return
 	}
+	// カーソルがファイルの先頭であれば終了
+	if ec.cx == 0 && ec.cy == 0 {
+		return
+	}
+
 	if ec.cx > 0 {
+		// カーソルが行の途中であれば、行内で1文字削除する
 		editorRowDelChar(&ec.row[ec.cy], ec.cx-1)
 		ec.cx--
+	} else {
+		// カーソルが行頭であれば、現在行を前の行の末尾に連結する
+		editorRowAppendString(&ec.row[ec.cy-1], ec.row[ec.cy].chars)
+		editorDelRow(ec.cy)
+		ec.cy--
 	}
 }
 
