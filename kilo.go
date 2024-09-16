@@ -59,6 +59,8 @@ type editorConfig struct {
 	screenRows, screenCols int
 	// 行バッファ
 	row []eRow
+	// ダーティフラグ
+	dirty int
 	// ファイル名
 	fileName string
 	// ステータスメッセージ
@@ -274,6 +276,8 @@ func editorAppendRow(s string) {
 	row := eRow{chars: s}
 	editorUpdateRow(&row)
 	ec.row = append(ec.row, row)
+
+	ec.dirty++
 }
 
 // 行データに文字を挿入
@@ -285,6 +289,8 @@ func editorRowInsertChar(row *eRow, at int, c rune) {
 	// 文字を挿入
 	row.chars = row.chars[:at] + string([]rune{c}) + row.chars[at:]
 	editorUpdateRow(row)
+
+	ec.dirty++
 }
 
 /*** editor operations ***/
@@ -327,6 +333,8 @@ func editorOpen(fileName string) {
 	for scanner.Scan() {
 		editorAppendRow(scanner.Text())
 	}
+
+	ec.dirty = 0
 }
 
 // ファイル保存
@@ -365,6 +373,8 @@ func editorSave() {
 
 	// 保存完了メッセージ表示
 	editorSetStatusMessage("%d bytes written to disk", len(s))
+
+	ec.dirty = 0
 }
 
 /*** output ***/
@@ -437,19 +447,24 @@ func editorDrawStatusBar(ab *string) {
 	// 色反転
 	*ab += "\x1b[7m"
 
-	// 左側：ファイル名と全行数
+	// ファイル名
 	fileName := ec.fileName
 	if fileName == "" {
 		fileName = "[No Name]"
 	}
-	status := fmt.Sprintf("%.20s - %d lines", fileName, len(ec.row))
+	// ファイルの編集状態
+	dirtyMsg := ""
+	if ec.dirty > 0 {
+		dirtyMsg = "(modified)"
+	}
+	// 左側テキスト
+	status := fmt.Sprintf("%.20s - %d lines %s", fileName, len(ec.row), dirtyMsg)
 	stLen := min(len(status), ec.screenCols)
+	*ab += status[:stLen]
 
-	// 右側：現在行/全行数
+	// 現在行/全行数
 	rstatus := fmt.Sprintf("%d/%d", ec.cy+1, len(ec.row))
 	rstLen := len(rstatus)
-
-	*ab += status[:stLen]
 	// 右側テキストは表示する余裕がある場合にのみ表示する
 	between := ec.screenCols - stLen - rstLen
 	if between >= 0 {
@@ -640,6 +655,7 @@ func initEditor() {
 	ec.rx = 0
 	ec.rowOff = 0
 	ec.colOff = 0
+	ec.dirty = 0
 
 	// ウィンドウサイズ取得
 	rows, cols, err := getWindowsSize()
