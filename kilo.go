@@ -72,12 +72,12 @@ var ec editorConfig
 /*** terminal ***/
 
 // Ctrl+英字キーを押したときのコードを返す
-func ctrlKey(r int) int {
+func ctrlKey(r rune) rune {
 	b := make([]byte, 4)
 	if utf8.EncodeRune(b, rune(r)) != 1 { // r は1バイトのASCIIコードの前提
 		panic("failed encode rune")
 	}
-	return int(b[0] & 0x1F)
+	return rune(b[0] & 0x1F)
 }
 
 // ターミナルをRAWモードから復帰する
@@ -117,7 +117,7 @@ func enableRawMode() {
 }
 
 // キー入力を待ち、入力結果を返す
-func editorReadKey() int {
+func editorReadKey() rune {
 	b := []byte{0}
 	for {
 		nread, err := syscall.Read(syscall.Stdin, b)
@@ -189,7 +189,7 @@ func editorReadKey() int {
 		}
 		return '\x1b'
 	}
-	return int(b[0])
+	return rune(b[0])
 }
 
 // カーソル位置を取得
@@ -251,26 +251,52 @@ func editorRowCxToRx(row eRow, cx int) int {
 }
 
 // 更新済みの行データを返す
-func editorUpdateRow(s string) eRow {
+func editorUpdateRow(row *eRow) {
 	// タブ文字をスペースに変換（8タブ）
-	tabs := strings.Count(s, "\t")
-	render := make([]byte, 0, len(s)+tabs*(kiloTabStop-1)) // 予め必要なバイト数をキャパシティに確保しておく
-	for j := 0; j < len(s); j++ {
-		if s[j] == '\t' {
+	tabs := strings.Count(row.chars, "\t")
+	render := make([]byte, 0, len(row.chars)+tabs*(kiloTabStop-1)) // 予め必要なバイト数をキャパシティに確保しておく
+	for j := 0; j < len(row.chars); j++ {
+		if row.chars[j] == '\t' {
 			render = append(render, ' ')
 			for len(render)%kiloTabStop != 0 {
 				render = append(render, ' ')
 			}
 		} else {
-			render = append(render, s[j])
+			render = append(render, row.chars[j])
 		}
 	}
-	return eRow{chars: s, render: string(render)}
+	row.render = string(render)
 }
 
 // 行データ追加
 func editorAppendRow(s string) {
-	ec.row = append(ec.row, editorUpdateRow(s))
+	row := eRow{chars: s}
+	editorUpdateRow(&row)
+	ec.row = append(ec.row, row)
+}
+
+// 行データに文字を挿入
+func editorRowInsertChar(row *eRow, at int, c rune) {
+	// カーソル位置が行の範囲外なら末尾へ追加
+	if at < 0 || at > len(row.chars) {
+		at = len(row.chars)
+	}
+	// 文字を挿入
+	row.chars = row.chars[:at] + string([]rune{c}) + row.chars[at:]
+	editorUpdateRow(row)
+}
+
+/*** editor operations ***/
+
+// 文字を挿入
+func editorInsertChar(c rune) {
+	// カーソル行が最終行の次であれば新しい行データを挿入
+	if ec.cy == len(ec.row) {
+		editorAppendRow("")
+	}
+	// 行データに文字を挿入
+	editorRowInsertChar(&ec.row[ec.cy], ec.cx, c)
+	ec.cx++
 }
 
 /*** file i/o ***/
@@ -439,7 +465,7 @@ func editorSetStatusMessage(format string, a ...any) {
 /*** input ***/
 
 // カーソル移動
-func editorMoveCursor(key int) {
+func editorMoveCursor(key rune) {
 	// 現在行
 	var row string
 	if ec.cy < len(ec.row) {
@@ -473,10 +499,12 @@ func editorMoveCursor(key int) {
 	}
 
 	// 新しい行の末尾にカーソルをスナップ
+	rowLen := 0
 	if ec.cy < len(ec.row) {
 		row = ec.row[ec.cy].chars
+		rowLen = len(row)
 	}
-	ec.cx = min(ec.cx, len(row))
+	ec.cx = min(ec.cx, rowLen)
 }
 
 // キー入力を待ち、入力されたキーに対応する処理を行う
@@ -502,7 +530,7 @@ func editorProcessKeypress() bool {
 		}
 
 	case pageUp, pageDown:
-		var arrow int
+		var arrow rune
 		if c == pageUp {
 			// 内部的に上矢印キーを発行
 			arrow = arrowUp
@@ -523,6 +551,10 @@ func editorProcessKeypress() bool {
 	case arrowUp, arrowDown, arrowLeft, arrowRight:
 		// カーソルを上下左右に移動
 		editorMoveCursor(c)
+
+	default:
+		// カーソル位置に文字を挿入
+		editorInsertChar(c)
 	}
 	return quit
 }

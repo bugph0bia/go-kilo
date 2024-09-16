@@ -831,3 +831,22 @@ Goの `time.Time` 型はUNIXタイムスタンプではなく 1年1月1日 0:00:
 いずれにしても使う際に意識する必要はない。  
 記憶しておいた時刻から現在時刻までの経過時間を調べるには `time.Since` を用いる。`time.Now().Sub(xx)` でも同じ結果が得られる。  
 経過時間は `time.Duration` 型で表現される。リテラルを用いる場合は `5 * time.Second` のように数値に専用の定数を乗算して表現することに注意。  
+
+## [5. A text editor](https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html)
+
+### [5-1. Insert ordinary characters](https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html#insert-ordinary-characters)
+
+#### チュートリアル
+
+- カーソル位置に一文字挿入する処理を追加する。
+
+#### 実践
+
+`editorUpdateRow()` はチュートリアルとは異なるシグネチャになっていたが、合わせることとした。引数に対象行のポインタを取って直接中を書き換えるコードのほうが、"Update Row" のイメージに合うため。  
+
+それ以外に下記のコード変更を行う。  
+
+- 文字のバイトコードを保持する変数をint型にしていたが、Goのイディオムに倣いrune型に統一する。
+    - 多バイト文字については一旦考えないこととする。デバッグ時に読み込み対象とするファイルもASCIIのみで構成される Makefile にする。
+- 最終行に移動してから文字挿入し続けると panic が発生するバグが `editorMoveCursor()` に存在した。新しい行に移動したときのカーソルX位置が0にリセットされていなかったことが原因。修正する。
+    - 4-6. Snap cursor to end of line で作り込んだバグ。
