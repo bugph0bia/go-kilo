@@ -934,3 +934,17 @@ Goのコンパイラはシングルパスではないので、関数のプロト
 本コードでは `editorFreeRow()` は実装不要。  
 
 行の連結が発生したときに、カーソル位置が前の行の末尾に移動しないことに違和感があるが、今後解消されるか？  
+
+### [5-8. The `Enter` key](https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html#the-enter-key)
+
+#### チュートリアル
+
+- `Enter` キーを押すことで、行を分割したり新しく挿入したりできるようにする。
+    - 以前に作った `editorAppendRow()` を `editorInsertRow()` に改造してこれを実現する。
+    - カーソル位置が行頭の場合は空行を挿入、それ以外の場合は現在行をカーソル位置で二分割する。
+
+#### 実践
+
+スライスへ要素を挿入するための効率的な方法を検討した（[参考](https://mattn.kaoriya.net/software/lang/go/20200404155447.htm)）。  
+調査の過程で、golang v1.22 で追加された slices パッケージの存在を知り、`slices.Insert()` を利用することとする。  
+前の章で実装したスライスから要素を削除する方法についても、`slices.Delete()` に置き換える。  

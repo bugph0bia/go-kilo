@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -274,11 +275,18 @@ func editorUpdateRow(row *eRow) {
 	row.render = string(render)
 }
 
-// 行データ追加
-func editorAppendRow(s string) {
+// 行データ挿入
+func editorInsertRow(at int, s string) {
+	// 対象が範囲外なら終了
+	if at < 0 || at > len(ec.row) {
+		return
+	}
+
+	// 挿入する行データを生成
 	row := eRow{chars: s}
 	editorUpdateRow(&row)
-	ec.row = append(ec.row, row)
+	// 位置 at に要素を挿入
+	ec.row = slices.Insert(ec.row, at, row)
 
 	ec.dirty++
 }
@@ -289,7 +297,8 @@ func editorDelRow(at int) {
 	if at < 0 || at >= len(ec.row) {
 		return
 	}
-	ec.row = ec.row[:at+(copy(ec.row[at:], ec.row[at+1:]))] // スライスからインデックス at の要素を削除して前詰め
+	// 位置 at の要素を削除
+	ec.row = slices.Delete(ec.row, at, at+1)
 
 	ec.dirty++
 }
@@ -335,11 +344,30 @@ func editorRowDelChar(row *eRow, at int) {
 func editorInsertChar(c rune) {
 	// カーソル行が最終行の次であれば新しい行データを挿入
 	if ec.cy == len(ec.row) {
-		editorAppendRow("")
+		editorInsertRow(len(ec.row), "")
 	}
 	// 行データに文字を挿入
 	editorRowInsertChar(&ec.row[ec.cy], ec.cx, c)
 	ec.cx++
+}
+
+// 新しい行を挿入
+func editorInsertNewLine() {
+	if ec.cx == 0 {
+		// カーソルが行頭の場合は空行を挿入
+		editorInsertRow(ec.cy, "")
+	} else {
+		row := &ec.row[ec.cy]
+		// カーソル位置の右側の文字列を次の行として挿入
+		editorInsertRow(ec.cy+1, row.chars[ec.cx+1:])
+		// 現在行はカーソル位置の左側までに更新
+		row.chars = row.chars[:ec.cx]
+		editorUpdateRow(row)
+	}
+
+	// カーソル位置を行頭へ
+	ec.cy++
+	ec.cx = 0
 }
 
 // 文字を削除
@@ -390,7 +418,7 @@ func editorOpen(fileName string) {
 	// 全行読み込み
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		editorAppendRow(scanner.Text())
+		editorInsertRow(len(ec.row), scanner.Text())
 	}
 
 	ec.dirty = 0
@@ -640,7 +668,8 @@ func editorProcessKeypress() (quit bool) {
 	switch c {
 	// Enter
 	case '\r':
-		// TODO:
+		// 新しい行を挿入
+		editorInsertNewLine()
 
 	// Ctrl-Q
 	case ctrlKey('q'):
