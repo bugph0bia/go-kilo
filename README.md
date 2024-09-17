@@ -948,3 +948,14 @@ Goのコンパイラはシングルパスではないので、関数のプロト
 スライスへ要素を挿入するための効率的な方法を検討した（[参考](https://mattn.kaoriya.net/software/lang/go/20200404155447.htm)）。  
 調査の過程で、golang v1.22 で追加された slices パッケージの存在を知り、`slices.Insert()` を利用することとする。  
 前の章で実装したスライスから要素を削除する方法についても、`slices.Delete()` に置き換える。  
+
+### [5-9. Save as...](https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html#save-as)
+
+#### チュートリアル
+
+- 引数なしでプログラムを起動したときにファイルを保存する方法がないため、プロンプトでファイル名を入力できるようにする。
+- プロンプト処理は、`Enter` で入力確定、`ESC` で入力中断、`Backspace` `Delete` で1文字削除する処理を用意する。
+
+#### 実践
+
+`editorPrompt()` は入力が確定されたか中断されたかを2つ目のbool型の戻り値で返すようにすることで、カンマokイディオムを利用できるようにする。  

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/sys/unix"
@@ -427,7 +428,15 @@ func editorOpen(fileName string) {
 // ファイル保存
 func editorSave() {
 	if ec.fileName == "" {
-		return
+		// ファイル名が未定であれば入力させる
+		fn, ok := editorPrompt("Save as: %s (ESC to Cancel)")
+		if ok {
+			ec.fileName = fn
+		} else {
+			// 入力が中断された場合は終了
+			editorSetStatusMessage("Save aborted")
+			return
+		}
 	}
 
 	// 行バッファの内容を取得
@@ -613,6 +622,44 @@ func editorSetStatusMessage(format string, a ...any) {
 }
 
 /*** input ***/
+
+// プロンプトを表示してユーザに文字を入力させ、Enter で入力確定した結果を返す
+// 引数 prompt はユーザが入力中の文字列を表示するための "%s" を含む必要がある
+// 戻り値の1つ目は入力結果の文字列、2つ目は入力確定状態
+func editorPrompt(prompt string) (string, bool) {
+	// 入力バッファ
+	var buf string
+
+	// ユーザ入力に対する処理
+	for {
+		// プロンプトを表示
+		editorSetStatusMessage(prompt, buf)
+		editorRefreshScreen()
+
+		// キー入力を待つ
+		c := editorReadKey()
+		if c == delKey || c == ctrlKey('h') || c == backspace {
+			// BS, Del が入力されたら1文字削除
+			if len(buf) > 0 {
+				buf = buf[:len(buf)-1]
+			}
+		} else if c == '\x1b' {
+			// ESC が入力されたら中断
+			editorSetStatusMessage("")
+			return "", false
+
+		} else if c == '\r' {
+			// Enter が入力されたら確定
+			if buf != "" {
+				editorSetStatusMessage("")
+				return buf, true
+			}
+		} else if !unicode.IsControl(c) && c < 0x80 {
+			// 印字可能な文字であればバッファに追加
+			buf += string(c)
+		}
+	}
+}
 
 // カーソル移動
 func editorMoveCursor(key rune) {
