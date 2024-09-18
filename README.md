@@ -983,3 +983,13 @@ Goのコンパイラはシングルパスではないので、関数のプロト
 
 コールバック関数は、Goではクロージャで代用できる。  
 `editorPrompt()` の中でしか使わない関数なので、クロージャにすることで利用するスコープを明確にし、パッケージ（グローバル）の名前空間を汚染することも防ぐことができる。  
+
+### [6-2. Restore cursor position when cancelling search](https://viewsourcecode.org/snaptoken/kilo/06.search.html#restore-cursor-position-when-cancelling-search)
+
+#### チュートリアル
+
+- `ESC` で検索を中断したとき、カーソル位置を検索を始める前の状態に戻すようにする。
+
+#### 実践
+
+検索が中断されたことを知るために、カンマokイディオムが利用できる。  

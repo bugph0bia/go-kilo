@@ -514,8 +514,21 @@ func editorFind() {
 		}
 	}
 
+	// カーソル位置を保存
+	savedCx := ec.cx
+	savedCy := ec.cy
+	savedColOff := ec.colOff
+	savedRowOff := ec.rowOff
+
 	// 検索開始
-	editorPrompt("Search: %s (ESC to cancel)", editorFindCallBack)
+	_, ok := editorPrompt("Search: %s (ESC to cancel)", editorFindCallBack)
+	if !ok {
+		// 検索が中断された場合はカーソル位置を復元
+		ec.cx = savedCx
+		ec.cy = savedCy
+		ec.colOff = savedColOff
+		ec.rowOff = savedRowOff
+	}
 }
 
 /*** output ***/
