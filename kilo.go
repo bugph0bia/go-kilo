@@ -446,7 +446,7 @@ func editorOpen(fileName string) {
 func editorSave() {
 	if ec.fileName == "" {
 		// ファイル名が未定であれば入力させる
-		fn, ok := editorPrompt("Save as: %s (ESC to Cancel)")
+		fn, ok := editorPrompt("Save as: %s (ESC to Cancel)", nil)
 		if ok {
 			ec.fileName = fn
 		} else {
@@ -494,24 +494,28 @@ func editorSave() {
 
 // 検索
 func editorFind() {
-	// 検索クエリの入力
-	query, ok := editorPrompt("Search: %s (ESC to cancel)")
-	if !ok {
-		return
-	}
-
-	// 全行ループ
-	for i, row := range ec.row {
-		// 検索
-		match := strings.Index(row.render, query)
-		if match >= 0 {
-			// マッチしたらカーソル位置と行スクロールを検索結果に合わせる
-			ec.cy = i
-			ec.cx = editorRowRxToCx(row, match)
-			ec.rowOff = len(ec.row)
-			break
+	// インクリメンタル検索のためのコールバック関数
+	editorFindCallBack := func(query string, key rune) {
+		// Enter, ESC キーが押された場合は何もしない
+		if key == '\r' || key == '\x1b' {
+			return
+		}
+		// 全行ループ
+		for i, row := range ec.row {
+			// 検索
+			match := strings.Index(row.render, query)
+			if match >= 0 {
+				// マッチしたらカーソル位置と行スクロールを検索結果に合わせる
+				ec.cy = i
+				ec.cx = editorRowRxToCx(row, match)
+				ec.rowOff = len(ec.row)
+				break
+			}
 		}
 	}
+
+	// 検索開始
+	editorPrompt("Search: %s (ESC to cancel)", editorFindCallBack)
 }
 
 /*** output ***/
@@ -666,8 +670,9 @@ func editorSetStatusMessage(format string, a ...any) {
 
 // プロンプトを表示してユーザに文字を入力させ、Enter で入力確定した結果を返す
 // 引数 prompt はユーザが入力中の文字列を表示するための "%s" を含む必要がある
+// 引数 callback はユーザが入力するたびに情報を渡すコールバック関数（不要な場合は nil とする）
 // 戻り値の1つ目は入力結果の文字列、2つ目は入力確定状態
-func editorPrompt(prompt string) (string, bool) {
+func editorPrompt(prompt string, callback func(string, rune)) (string, bool) {
 	// 入力バッファ
 	var buf string
 
@@ -684,20 +689,35 @@ func editorPrompt(prompt string) (string, bool) {
 			if len(buf) > 0 {
 				buf = buf[:len(buf)-1]
 			}
+
 		} else if c == '\x1b' {
 			// ESC が入力されたら中断
 			editorSetStatusMessage("")
+			// コールバック関数呼び出し
+			if callback != nil {
+				callback(buf, c)
+			}
 			return "", false
 
 		} else if c == '\r' {
 			// Enter が入力されたら確定
 			if buf != "" {
 				editorSetStatusMessage("")
+				// コールバック関数呼び出し
+				if callback != nil {
+					callback(buf, c)
+				}
 				return buf, true
 			}
+
 		} else if !unicode.IsControl(c) && c < 0x80 {
 			// 印字可能な文字であればバッファに追加
 			buf += string(c)
+		}
+
+		// コールバック関数呼び出し
+		if callback != nil {
+			callback(buf, c)
 		}
 	}
 }
