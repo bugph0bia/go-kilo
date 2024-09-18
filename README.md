@@ -1013,3 +1013,16 @@ Cの静的変数はプログラム起動時の一度しか初期化されない�
 
 この章に限ったことではないが、構造体変数を別の変数に代入したり関数の引数に渡すとき、値を渡すべきかアドレスを渡すべきか、悩む。  
 C言語の経験に照らし合わせれば間違いなくアドレス渡しとすべきだが、Goのイディオム的には値渡しで良いという説明をどこかで見た記憶があり、値渡しとする。  
+
+## [7. Syntax highlighting](https://viewsourcecode.org/snaptoken/kilo/07.syntaxHighlighting.html)
+
+### [7-1. colorful digits](https://viewsourcecode.org/snaptoken/kilo/07.syntaxHighlighting.html#colorful-digits)
+
+#### チュートリアル
+
+- 数字を赤色にする。
+- 色の変更にはエスケープシーケンスを利用する（[参考](https://en.wikipedia.org/wiki/ANSI_escape_code)）。
+
+#### 実践
+
+文字色を設定するようなライブラリは利用せず、チュートリアルと同じようにエスケープシーケンスで色を付ける。  

@@ -616,10 +616,18 @@ func editorDrawRows(ab *string) {
 			}
 		} else {
 			// 行バッファの内容を出力
-			rowLen := max(len(ec.row[fileRow].render)-ec.colOff, 0)
-			rowLen = min(rowLen, ec.screenCols)
-			if rowLen > 0 {
-				*ab += ec.row[fileRow].render[ec.colOff : ec.colOff+rowLen]
+			rowLen := max(len(ec.row[fileRow].render)-ec.colOff, 0)   // 横スクロール状態を考慮して文字列長を調整
+			rowLen = min(rowLen, ec.screenCols)                       // スクリーン幅に収まるように文字列長を調整
+			c := ec.row[fileRow].render[ec.colOff : ec.colOff+rowLen] // 行データから表示範囲のスライスを抽出
+			for j := 0; j < rowLen; j++ {
+				// 数字
+				if unicode.IsDigit(rune(c[j])) {
+					*ab += "\x1b[31m" // 文字色: 赤
+					*ab += string(c[j])
+					*ab += "\x1b[39m" // 文字色: リセット
+				} else {
+					*ab += string(c[j])
+				}
 			}
 		}
 
