@@ -95,7 +95,7 @@ Goでは明示的に return を書かなければ 0 を返すので、終了コ�
 
 Go用のMakefileを追加。  
 
-### [2. Entering raw mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html)
+## [2. Entering raw mode](https://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html)
 
 #### チュートリアル
 
@@ -959,3 +959,14 @@ Goのコンパイラはシングルパスではないので、関数のプロト
 #### 実践
 
 `editorPrompt()` は入力が確定されたか中断されたかを2つ目のbool型の戻り値で返すようにすることで、カンマokイディオムを利用できるようにする。  
+
+## [6. Search](https://viewsourcecode.org/snaptoken/kilo/06.search.html)
+
+#### チュートリアル
+
+- `editorPrompt()` を利用して簡単な検索機能を実装する。
+- `Ctrl-F` を検索機能にマッピングする。
+
+#### 実践
+
+チュートリアル通りのコードを追加したが、forループは少し自分の好みのコードに変えた。  

@@ -258,6 +258,23 @@ func editorRowCxToRx(row eRow, cx int) int {
 	return rx
 }
 
+// 行内の位置 rx から cx を算出する
+func editorRowRxToCx(row eRow, rx int) int {
+	cur_rx := 0
+	var cx int
+	for cx = 0; cx < len(row.chars); cx++ {
+		// タブ文字に相当するスペースの数を計算
+		if row.chars[cx] == '\t' {
+			cur_rx += (kiloTabStop - 1) - (cur_rx % kiloTabStop)
+		}
+		cur_rx++
+		if cur_rx > rx {
+			break
+		}
+	}
+	return cx
+}
+
 // 更新済みの行データを返す
 func editorUpdateRow(row *eRow) {
 	// タブ文字をスペースに変換（8タブ）
@@ -471,6 +488,30 @@ func editorSave() {
 	editorSetStatusMessage("%d bytes written to disk", len(s))
 
 	ec.dirty = 0
+}
+
+/*** find ***/
+
+// 検索
+func editorFind() {
+	// 検索クエリの入力
+	query, ok := editorPrompt("Search: %s (ESC to cancel)")
+	if !ok {
+		return
+	}
+
+	// 全行ループ
+	for i, row := range ec.row {
+		// 検索
+		match := strings.Index(row.render, query)
+		if match >= 0 {
+			// マッチしたらカーソル位置と行スクロールを検索結果に合わせる
+			ec.cy = i
+			ec.cx = editorRowRxToCx(row, match)
+			ec.rowOff = len(ec.row)
+			break
+		}
+	}
 }
 
 /*** output ***/
@@ -747,6 +788,11 @@ func editorProcessKeypress() (quit bool) {
 			ec.cx = len(ec.row[ec.cy].chars)
 		}
 
+	// Ctrl-F
+	case ctrlKey('f'):
+		// 検索
+		editorFind()
+
 	// BS, Ctrl-H, Del
 	case backspace, ctrlKey('h'), delKey:
 		// Delの場合はカーソルを1つ右に移動しておく
@@ -839,7 +885,7 @@ func main() {
 	}
 
 	// ステータスメッセージを表示
-	editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit")
+	editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find")
 
 	// メインループ
 	for {
