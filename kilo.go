@@ -494,19 +494,52 @@ func editorSave() {
 
 // 検索
 func editorFind() {
+	// 検索一致した最終行
+	lastMatch := -1
+	// 検索方向 (-1:前方, +1:後方)
+	direction := 1
+
 	// インクリメンタル検索のためのコールバック関数
 	editorFindCallBack := func(query string, key rune) {
-		// Enter, ESC キーが押された場合は何もしない
 		if key == '\r' || key == '\x1b' {
+			// Enter, ESC キーが押された場合は何もしない
 			return
+		} else if key == arrowRight || key == arrowDown {
+			// 右・下キーで後方検索
+			direction = 1
+		} else if key == arrowLeft || key == arrowUp {
+			// 左・上キーで後方検索
+			direction = -1
+		} else {
+			// それ以外のキーが押されたら状態をリセット
+			lastMatch = -1
+			direction = 1
 		}
+
+		// マッチしていなければ検索方向をリセット
+		if lastMatch == -1 {
+			direction = 1
+		}
+
+		// 検索開始行インデックスを初期化
+		current := lastMatch
+
 		// 全行ループ
-		for i, row := range ec.row {
-			// 検索
+		for range ec.row {
+			// 検索方向に行インデックスを進める
+			current += direction
+			// 行インデックスを 0 ～ len(ec.row)-1 の範囲に丸めてローテーション
+			current = (current + len(ec.row)) % len(ec.row)
+
+			// カレント行
+			row := ec.row[current]
+			// インデックスが指す行データ内を検索
 			match := strings.Index(row.render, query)
 			if match >= 0 {
-				// マッチしたらカーソル位置と行スクロールを検索結果に合わせる
-				ec.cy = i
+				// マッチした行インデックスを記憶
+				lastMatch = current
+				// カーソル位置と行スクロールを検索位置に移動
+				ec.cy = current
 				ec.cx = editorRowRxToCx(row, match)
 				ec.rowOff = len(ec.row)
 				break
@@ -521,7 +554,7 @@ func editorFind() {
 	savedRowOff := ec.rowOff
 
 	// 検索開始
-	_, ok := editorPrompt("Search: %s (ESC to cancel)", editorFindCallBack)
+	_, ok := editorPrompt("Search: %s (Use ESC/Arrows/Enter)", editorFindCallBack)
 	if !ok {
 		// 検索が中断された場合はカーソル位置を復元
 		ec.cx = savedCx
