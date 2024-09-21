@@ -45,7 +45,7 @@ const (
 
 // シンタックスハイライト種別
 const (
-	hlNormal = iota
+	hlNormal byte = iota
 	hlNumber
 	hlMatch
 )
@@ -254,16 +254,41 @@ func getWindowsSize() (int, int, error) {
 
 /*** highlighting ***/
 
+// 区切り文字を判定する
+func isSeparator(c rune) bool {
+	return unicode.IsSpace(c) || c == 0 || strings.ContainsAny(string(c), `,.()+-/*=~%<>[];`)
+}
+
 // シンタックスハイライト情報を更新する
 func editorUpdateSyntax(row *eRow) {
+	// ハイライト情報を初期化
 	row.hl = make([]byte, len(row.render))
+	for i := range row.hl {
+		row.hl[i] = hlNormal
+	}
 
+	// 直前の文字が区切り文字かどうかの判定
+	prevSep := true
+
+	// ハイライト判定
 	for i := 0; i < len(row.render); i++ {
-		if unicode.IsDigit(rune(row.render[i])) {
-			row.hl[i] = hlNumber
-		} else {
-			row.hl[i] = hlNormal
+		c := rune(row.render[i])
+
+		// 直前の文字のハイライト情報
+		prevHl := hlNormal
+		if i > 0 {
+			prevHl = row.hl[i-1]
 		}
+
+		// 数字の場合
+		if unicode.IsDigit(c) && (prevSep || prevHl == hlNumber) || (c == '.' && prevHl == hlNumber) {
+			row.hl[i] = hlNumber
+			prevSep = false
+			continue
+		}
+
+		// 区切り文字判定
+		prevSep = isSeparator(c)
 	}
 }
 
