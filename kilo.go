@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
 	"syscall"
@@ -50,7 +51,19 @@ const (
 	hlMatch
 )
 
+// シンタックスハイライトフラグ
+const (
+	hlHighlightNumbers uint32 = 1 << iota
+)
+
 /*** data ***/
+
+// シンタックス情報
+type editorSyntax struct {
+	fileType  string
+	fileMatch []string
+	flags     uint32
+}
 
 // エディタ行バッファ
 type eRow struct {
@@ -80,11 +93,25 @@ type editorConfig struct {
 	// ステータスメッセージ
 	statusMsg     string
 	statusMsgTime time.Time
+	// シンタックス情報
+	syntax *editorSyntax
 	// ターミナルの初期モード
 	origTermios *term.State
 }
 
 var ec editorConfig
+
+/*** filetypes ***/
+
+// シンタックス情報
+var hldb []editorSyntax = []editorSyntax{
+	// C/C++
+	{
+		fileType:  "c",
+		fileMatch: []string{`.c$`, `.h$`, `.cpp$`},
+		flags:     hlHighlightNumbers,
+	},
+}
 
 /*** terminal ***/
 
@@ -267,6 +294,11 @@ func editorUpdateSyntax(row *eRow) {
 		row.hl[i] = hlNormal
 	}
 
+	// シンタックス無しなら終了
+	if ec.syntax == nil {
+		return
+	}
+
 	// 直前の文字が区切り文字かどうかの判定
 	prevSep := true
 
@@ -280,11 +312,13 @@ func editorUpdateSyntax(row *eRow) {
 			prevHl = row.hl[i-1]
 		}
 
-		// 数字の場合
-		if unicode.IsDigit(c) && (prevSep || prevHl == hlNumber) || (c == '.' && prevHl == hlNumber) {
-			row.hl[i] = hlNumber
-			prevSep = false
-			continue
+		// 数値ハイライト
+		if ec.syntax.flags&hlHighlightNumbers > 0 {
+			if unicode.IsDigit(c) && (prevSep || prevHl == hlNumber) || (c == '.' && prevHl == hlNumber) {
+				row.hl[i] = hlNumber
+				prevSep = false
+				continue
+			}
 		}
 
 		// 区切り文字判定
@@ -301,6 +335,34 @@ func editorSyntaxToColor(hl byte) int {
 		return 34
 	default:
 		return 37
+	}
+}
+
+// 開いたファイルのシンタックスを選択
+func editorSelectSyntaxHighlight() {
+	ec.syntax = nil
+	if ec.fileName == "" {
+		return
+	}
+
+	// いずれかのシンタックスに該当するかチェック
+	for _, s := range hldb {
+		for _, fileMatch := range s.fileMatch {
+			// ファイル名パターンにマッチする場合はそのシンタックスを採用する
+			r, err := regexp.Compile(fileMatch)
+			if err != nil {
+				panic(err)
+			}
+			if r.FindString(ec.fileName) != "" {
+				ec.syntax = &s
+
+				// 新しいシンタックスでハイライト状態を更新
+				for i := range ec.row {
+					editorUpdateSyntax(&ec.row[i])
+				}
+				return
+			}
+		}
 	}
 }
 
@@ -490,6 +552,9 @@ func editorRowsToString() string {
 func editorOpen(fileName string) {
 	ec.fileName = fileName
 
+	// ファイルシンタックス判定
+	editorSelectSyntaxHighlight()
+
 	// ファイルオープン
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -513,6 +578,8 @@ func editorSave() {
 		fn, ok := editorPrompt("Save as: %s (ESC to Cancel)", nil)
 		if ok {
 			ec.fileName = fn
+			// ファイルシンタックス判定
+			editorSelectSyntaxHighlight()
 		} else {
 			// 入力が中断された場合は終了
 			editorSetStatusMessage("Save aborted")
@@ -752,8 +819,13 @@ func editorDrawStatusBar(ab *string) {
 	stLen := min(len(status), ec.screenCols)
 	*ab += status[:stLen]
 
-	// 現在行/全行数
-	rstatus := fmt.Sprintf("%d/%d", ec.cy+1, len(ec.row))
+	// ファイルタイプ
+	ft := "no ft"
+	if ec.syntax != nil {
+		ft = ec.syntax.fileType
+	}
+	// 現在行/全行数を加える
+	rstatus := fmt.Sprintf("%s | %d/%d", ft, ec.cy+1, len(ec.row))
 	rstLen := len(rstatus)
 	// 右側テキストは表示する余裕がある場合にのみ表示する
 	between := ec.screenCols - stLen - rstLen
