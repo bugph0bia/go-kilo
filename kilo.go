@@ -43,6 +43,12 @@ const (
 	pageDown
 )
 
+// ハイライト
+const (
+	hlNormal = iota
+	hlNumber
+)
+
 /*** data ***/
 
 // エディタ行バッファ
@@ -51,6 +57,8 @@ type eRow struct {
 	chars string
 	// レンダリング
 	render string
+	// シンタックスハイライト
+	hl []byte
 }
 
 // エディタステータス
@@ -243,6 +251,31 @@ func getWindowsSize() (int, int, error) {
 	return int(ws.Row), int(ws.Col), nil
 }
 
+/*** highlighting ***/
+
+// シンタックスハイライト情報を更新する
+func editorUpdateSyntax(row *eRow) {
+	row.hl = make([]byte, len(row.render))
+
+	for i := 0; i < len(row.render); i++ {
+		if unicode.IsDigit(rune(row.render[i])) {
+			row.hl[i] = hlNumber
+		} else {
+			row.hl[i] = hlNormal
+		}
+	}
+}
+
+// シンタックスハイライトに対応するANSIカラーコードを返す
+func editorSyntaxToColor(hl byte) int {
+	switch hl {
+	case hlNumber:
+		return 31
+	default:
+		return 37
+	}
+}
+
 /*** row operations ***/
 
 // 行内の位置 cx から rx を算出する
@@ -275,7 +308,7 @@ func editorRowRxToCx(row eRow, rx int) int {
 	return cx
 }
 
-// 更新済みの行データを返す
+// 行バッファを更新
 func editorUpdateRow(row *eRow) {
 	// タブ文字をスペースに変換（8タブ）
 	tabs := strings.Count(row.chars, "\t")
@@ -291,6 +324,9 @@ func editorUpdateRow(row *eRow) {
 		}
 	}
 	row.render = string(render)
+
+	// ハイライト情報を更新
+	editorUpdateSyntax(row)
 }
 
 // 行データ挿入
@@ -619,16 +655,29 @@ func editorDrawRows(ab *string) {
 			rowLen := max(len(ec.row[fileRow].render)-ec.colOff, 0)   // 横スクロール状態を考慮して文字列長を調整
 			rowLen = min(rowLen, ec.screenCols)                       // スクリーン幅に収まるように文字列長を調整
 			c := ec.row[fileRow].render[ec.colOff : ec.colOff+rowLen] // 行データから表示範囲のスライスを抽出
+			hl := ec.row[fileRow].hl[ec.colOff : ec.colOff+rowLen]    // 表示範囲のシンタックスハイライト情報を抽出
+			currentColor := -1                                        // 現在の色を初期化
+
 			for j := 0; j < rowLen; j++ {
-				// 数字
-				if unicode.IsDigit(rune(c[j])) {
-					*ab += "\x1b[31m" // 文字色: 赤
+				if hl[j] == hlNormal {
+					// 色をリセット
+					if currentColor != -1 {
+						*ab += "\x1b[39m"
+						currentColor = -1
+					}
 					*ab += string(c[j])
-					*ab += "\x1b[39m" // 文字色: リセット
 				} else {
+					// 色を変更
+					color := editorSyntaxToColor(hl[j])
+					if currentColor != color {
+						*ab += fmt.Sprintf("\x1b[%dm", color)
+						currentColor = color
+					}
 					*ab += string(c[j])
 				}
 			}
+			// 色をリセット
+			*ab += "\x1b[39m"
 		}
 
 		// カーソル位置を復帰して改行
