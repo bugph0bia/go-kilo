@@ -1042,3 +1042,13 @@ C言語の経験に照らし合わせれば間違いなくアドレス渡しと�
 Goには `memset` に相当する関数はないのでループで初期化することになる。
 
 `editorSyntaxToColor()` は map を使ってもよいかもしれないが、必ずしも 1:1 対応しないかもしれないので（default節にどこまで頼るかわからないので）、チュートリアル通りの関数とする。  
+
+### [7-3. Colorful search results](https://viewsourcecode.org/snaptoken/kilo/07.syntaxHighlighting.html#colorful-search-results)
+
+#### チュートリアル
+
+- 検索中にマッチした文字列を青色にハイライトする。
+
+#### 実践
+
+チュートリアル通りのコードを追加。  

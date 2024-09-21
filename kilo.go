@@ -43,10 +43,11 @@ const (
 	pageDown
 )
 
-// ハイライト
+// シンタックスハイライト種別
 const (
 	hlNormal = iota
 	hlNumber
+	hlMatch
 )
 
 /*** data ***/
@@ -271,6 +272,8 @@ func editorSyntaxToColor(hl byte) int {
 	switch hl {
 	case hlNumber:
 		return 31
+	case hlMatch:
+		return 34
 	default:
 		return 37
 	}
@@ -578,6 +581,11 @@ func editorFind() {
 				ec.cy = current
 				ec.cx = editorRowRxToCx(row, match)
 				ec.rowOff = len(ec.row)
+
+				// マッチしたクエリをハイライト
+				for i := match; i < match+len(query); i++ {
+					row.hl[i] = hlMatch
+				}
 				break
 			}
 		}
