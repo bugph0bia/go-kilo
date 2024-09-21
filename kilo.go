@@ -533,13 +533,22 @@ func editorSave() {
 
 // 検索
 func editorFind() {
-	// 検索一致した最終行
-	lastMatch := -1
-	// 検索方向 (-1:前方, +1:後方)
-	direction := 1
+
+	// 検索状態を保存する変数
+	lastMatch := -1    // 検索一致した最終行
+	direction := 1     // 検索方向 (-1:前方, +1:後方)
+	savedHlLine := -1  // 検索結果の行インデックス
+	var savedHl []byte // 検索前のシンタックスハイライト情報
 
 	// インクリメンタル検索のためのコールバック関数
 	editorFindCallBack := func(query string, key rune) {
+		// 検索結果が存在する場合はシンタックスハイライトを解除
+		if savedHlLine != -1 {
+			ec.row[savedHlLine].hl = savedHl
+			savedHlLine = -1
+		}
+
+		// 入力キーごとに処理を分ける
 		if key == '\r' || key == '\x1b' {
 			// Enter, ESC キーが押された場合は何もしない
 			return
@@ -582,6 +591,10 @@ func editorFind() {
 				ec.cx = editorRowRxToCx(row, match)
 				ec.rowOff = len(ec.row)
 
+				// ハイライト前の状態を保存
+				savedHlLine = current
+				savedHl = make([]byte, len(row.hl))
+				copy(savedHl, row.hl) // row.hl の内容をディープコピー
 				// マッチしたクエリをハイライト
 				for i := match; i < match+len(query); i++ {
 					row.hl[i] = hlMatch
