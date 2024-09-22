@@ -1107,3 +1107,13 @@ Goのスライスは長さの情報を持つため、終端NULLや `HLDB_ENTRIES
 Goの `iota` はビットフィールドの定義にも利用できる。  
 
 本コードでは while ループではなく for ループを使用しているので、インデックスをインクリメントするロジックを少し変える。  
+
+### [7-8. Colorful single-line comments](https://viewsourcecode.org/snaptoken/kilo/07.syntaxHighlighting.html#colorful-single-line-comments)
+
+#### チュートリアル
+
+- 一行コメントをハイライトする。
+
+#### 実践
+
+`strncmp()` の代わりに `strings.HasPrefix()` を使用してコメントの開始を判定する。  

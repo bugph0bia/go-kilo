@@ -47,6 +47,7 @@ const (
 // シンタックスハイライト種別
 const (
 	hlNormal byte = iota
+	hlComment
 	hlString
 	hlNumber
 	hlMatch
@@ -62,9 +63,14 @@ const (
 
 // シンタックス情報
 type editorSyntax struct {
-	fileType  string
+	// ファイルタイプ名称
+	fileType string
+	// ファイル名のパターン
 	fileMatch []string
-	flags     uint32
+	// 一行コメントの開始文字列
+	singleLineCommentStart string
+	// ハイライトフラグ
+	flags uint32
 }
 
 // エディタ行バッファ
@@ -109,9 +115,10 @@ var ec editorConfig
 var hldb []editorSyntax = []editorSyntax{
 	// C/C++
 	{
-		fileType:  "c",
-		fileMatch: []string{`.c$`, `.h$`, `.cpp$`},
-		flags:     hlHighlightNumbers | hlHighlightStrings,
+		fileType:               "c",
+		fileMatch:              []string{`.c$`, `.h$`, `.cpp$`},
+		singleLineCommentStart: "//",
+		flags:                  hlHighlightNumbers | hlHighlightStrings,
 	},
 }
 
@@ -316,7 +323,18 @@ func editorUpdateSyntax(row *eRow) {
 			prevHl = row.hl[i-1]
 		}
 
-		// 文字列ハイライト
+		// 一行コメントの判定
+		if ec.syntax.singleLineCommentStart != "" && inString == 0 {
+			// 一行コメントの開始位置であれば末尾までコメントのハイライトを設定する
+			if strings.HasPrefix(row.render[i:], ec.syntax.singleLineCommentStart) {
+				for ; i < len(row.render); i++ {
+					row.hl[i] = hlComment
+				}
+				break
+			}
+		}
+
+		// 文字列の判定
 		if ec.syntax.flags&hlHighlightStrings > 0 {
 			// 文字列リテラルの内部
 			if inString > 0 {
@@ -344,7 +362,7 @@ func editorUpdateSyntax(row *eRow) {
 			}
 		}
 
-		// 数値ハイライト
+		// 数値の判定
 		if ec.syntax.flags&hlHighlightNumbers > 0 {
 			if unicode.IsDigit(c) && (prevSep || prevHl == hlNumber) || (c == '.' && prevHl == hlNumber) {
 				row.hl[i] = hlNumber
@@ -361,6 +379,8 @@ func editorUpdateSyntax(row *eRow) {
 // シンタックスハイライトに対応するANSIカラーコードを返す
 func editorSyntaxToColor(hl byte) int {
 	switch hl {
+	case hlComment:
+		return 36
 	case hlString:
 		return 35
 	case hlNumber:
