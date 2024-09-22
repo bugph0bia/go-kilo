@@ -47,6 +47,7 @@ const (
 // シンタックスハイライト種別
 const (
 	hlNormal byte = iota
+	hlString
 	hlNumber
 	hlMatch
 )
@@ -54,6 +55,7 @@ const (
 // シンタックスハイライトフラグ
 const (
 	hlHighlightNumbers uint32 = 1 << iota
+	hlHighlightStrings
 )
 
 /*** data ***/
@@ -109,7 +111,7 @@ var hldb []editorSyntax = []editorSyntax{
 	{
 		fileType:  "c",
 		fileMatch: []string{`.c$`, `.h$`, `.cpp$`},
-		flags:     hlHighlightNumbers,
+		flags:     hlHighlightNumbers | hlHighlightStrings,
 	},
 }
 
@@ -301,6 +303,8 @@ func editorUpdateSyntax(row *eRow) {
 
 	// 直前の文字が区切り文字かどうかの判定
 	prevSep := true
+	// 文字列の中かどうかの判定
+	var inString rune
 
 	// ハイライト判定
 	for i := 0; i < len(row.render); i++ {
@@ -310,6 +314,34 @@ func editorUpdateSyntax(row *eRow) {
 		prevHl := hlNormal
 		if i > 0 {
 			prevHl = row.hl[i-1]
+		}
+
+		// 文字列ハイライト
+		if ec.syntax.flags&hlHighlightStrings > 0 {
+			// 文字列リテラルの内部
+			if inString > 0 {
+				row.hl[i] = hlString
+				// エスケープコードの場合は次の文字もハイライトする
+				if c == '\\' && i+1 < len(row.render) {
+					i++
+					row.hl[i] = hlString
+					continue
+				}
+				// 文字列リテラルの終了
+				if c == inString {
+					inString = 0
+				}
+				prevSep = true
+				continue
+
+			} else {
+				// 文字列リテラルの開始
+				if c == '"' || c == '\'' {
+					inString = c
+					row.hl[i] = hlString
+					continue
+				}
+			}
 		}
 
 		// 数値ハイライト
@@ -329,6 +361,8 @@ func editorUpdateSyntax(row *eRow) {
 // シンタックスハイライトに対応するANSIカラーコードを返す
 func editorSyntaxToColor(hl byte) int {
 	switch hl {
+	case hlString:
+		return 35
 	case hlNumber:
 		return 31
 	case hlMatch:
