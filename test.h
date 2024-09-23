@@ -1,5 +1,9 @@
 #include <stdio.h>
 
+/* comment
+comment
+comment */
+
 // main function
 int main() {
     int i;

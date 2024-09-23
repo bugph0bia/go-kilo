@@ -48,6 +48,7 @@ const (
 const (
 	hlNormal byte = iota
 	hlComment
+	hlMultiLineComment
 	hlKeyword1
 	hlKeyword2
 	hlString
@@ -73,18 +74,24 @@ type editorSyntax struct {
 	keywords1, keywords2 []string
 	// 一行コメントの開始文字列
 	singleLineCommentStart string
+	// 複数行コメントの開始・終了文字列
+	multiLineCommentStart, multiLineCommentEnd string
 	// ハイライトフラグ
 	flags uint32
 }
 
 // エディタ行バッファ
 type eRow struct {
+	// 自身の行インデックス
+	idx int
 	// テキスト
 	chars string
 	// レンダリング
 	render string
 	// シンタックスハイライト
 	hl []byte
+	// 複数行コメント内フラグ
+	hlOpenComment bool
 }
 
 // エディタステータス
@@ -129,6 +136,8 @@ var hldb []editorSyntax = []editorSyntax{
 			"int", "long", "double", "float", "char", "unsigned", "signed", "void",
 		},
 		singleLineCommentStart: "//",
+		multiLineCommentStart:  "/*",
+		multiLineCommentEnd:    "*/",
 		flags:                  hlHighlightNumbers | hlHighlightStrings,
 	},
 }
@@ -323,6 +332,9 @@ func editorUpdateSyntax(row *eRow) {
 	prevSep := true
 	// 文字列の中かどうかの判定
 	var inString rune
+	// 複数行コメントの中かどうかの判定
+	// 前の行が複数行コメント内であれば true で始める
+	inComment := (row.idx > 0 && ec.row[row.idx-1].hlOpenComment)
 
 	// ハイライト判定
 	for i := 0; i < len(row.render); i++ {
@@ -335,13 +347,39 @@ func editorUpdateSyntax(row *eRow) {
 		}
 
 		// 一行コメントの判定
-		if ec.syntax.singleLineCommentStart != "" && inString == 0 {
+		if ec.syntax.singleLineCommentStart != "" && inString == 0 && !inComment {
 			// 一行コメントの開始位置であれば末尾までコメントのハイライトを設定する
 			if strings.HasPrefix(row.render[i:], ec.syntax.singleLineCommentStart) {
 				for ; i < len(row.render); i++ {
 					row.hl[i] = hlComment
 				}
 				break
+			}
+		}
+
+		// 複数行コメントの判定
+		if ec.syntax.multiLineCommentStart != "" && ec.syntax.multiLineCommentEnd != "" && inString == 0 {
+			if inComment {
+				row.hl[i] = hlComment
+
+				if strings.HasPrefix(row.render[i:], ec.syntax.multiLineCommentEnd) {
+					// コメントの終了処理
+					for range ec.syntax.multiLineCommentEnd {
+						row.hl[i] = hlComment
+						i++
+					}
+					inComment = false
+					prevSep = false
+				}
+				continue
+
+			} else if strings.HasPrefix(row.render[i:], ec.syntax.multiLineCommentStart) {
+				// コメントの開始処理
+				for range ec.syntax.multiLineCommentStart {
+					row.hl[i] = hlComment
+					i++
+				}
+				inComment = true
 			}
 		}
 
@@ -414,12 +452,20 @@ func editorUpdateSyntax(row *eRow) {
 		// 区切り文字判定
 		prevSep = isSeparator(c)
 	}
+
+	// 現在行の複数行コメント内フラグを更新する
+	changed := (row.hlOpenComment != inComment) // 更新により変化があるかを記憶
+	row.hlOpenComment = inComment
+	// 現在行のコメント状態に変化があった場合は次の行のシンタックスを更新する
+	if changed && row.idx+1 < len(ec.row) {
+		editorUpdateSyntax(&ec.row[row.idx+1])
+	}
 }
 
 // シンタックスハイライトに対応するANSIカラーコードを返す
 func editorSyntaxToColor(hl byte) int {
 	switch hl {
-	case hlComment:
+	case hlComment, hlMultiLineComment:
 		return 36
 	case hlKeyword1:
 		return 33
@@ -525,10 +571,21 @@ func editorInsertRow(at int, s string) {
 	}
 
 	// 挿入する行データを生成
-	row := eRow{chars: s}
+	row := eRow{
+		idx:           at,
+		chars:         s,
+		render:        "",  // editorUpdateRow() の中で初期化される
+		hl:            nil, // editorUpdateRow() の中で初期化される
+		hlOpenComment: false,
+	}
 	editorUpdateRow(&row)
 	// 位置 at に要素を挿入
 	ec.row = slices.Insert(ec.row, at, row)
+
+	// 次の行以降の行インデックスをインクリメントする
+	for j := at + 1; j < len(ec.row); j++ {
+		ec.row[j].idx++
+	}
 
 	ec.dirty++
 }
@@ -541,6 +598,11 @@ func editorDelRow(at int) {
 	}
 	// 位置 at の要素を削除
 	ec.row = slices.Delete(ec.row, at, at+1)
+
+	// 現在行以降の行インデックスをデクリメントする
+	for j := at; j < len(ec.row); j++ {
+		ec.row[j].idx--
+	}
 
 	ec.dirty++
 }
