@@ -48,6 +48,8 @@ const (
 const (
 	hlNormal byte = iota
 	hlComment
+	hlKeyword1
+	hlKeyword2
 	hlString
 	hlNumber
 	hlMatch
@@ -67,6 +69,8 @@ type editorSyntax struct {
 	fileType string
 	// ファイル名のパターン
 	fileMatch []string
+	// キーワード(1: キーワード、2: 型名)
+	keywords1, keywords2 []string
 	// 一行コメントの開始文字列
 	singleLineCommentStart string
 	// ハイライトフラグ
@@ -115,8 +119,15 @@ var ec editorConfig
 var hldb []editorSyntax = []editorSyntax{
 	// C/C++
 	{
-		fileType:               "c",
-		fileMatch:              []string{`.c$`, `.h$`, `.cpp$`},
+		fileType:  "c",
+		fileMatch: []string{`.c$`, `.h$`, `.cpp$`},
+		keywords1: []string{
+			"switch", "if", "while", "for", "break", "continue", "return", "else",
+			"struct", "union", "typedef", "static", "enum", "class", "case",
+		},
+		keywords2: []string{
+			"int", "long", "double", "float", "char", "unsigned", "signed", "void",
+		},
 		singleLineCommentStart: "//",
 		flags:                  hlHighlightNumbers | hlHighlightStrings,
 	},
@@ -371,6 +382,35 @@ func editorUpdateSyntax(row *eRow) {
 			}
 		}
 
+		// 行データの現在位置がキーワードにマッチするかチェックし、
+		// マッチしている場合はハイライトを設定してインデックスを進める関数
+		highlightKeywords := func(keywords []string, colorCode byte) bool {
+			for _, keyword := range keywords {
+				if strings.HasPrefix(row.render[i:], keyword) {
+					for range keyword {
+						row.hl[i] = colorCode
+						i++
+					}
+					return true
+				}
+			}
+			return false
+		}
+
+		// キーワードの判定
+		if prevSep {
+			// キーワード1
+			if highlightKeywords(ec.syntax.keywords1, hlKeyword1) {
+				prevSep = false
+				continue
+			}
+			// キーワード2
+			if highlightKeywords(ec.syntax.keywords2, hlKeyword2) {
+				prevSep = false
+				continue
+			}
+		}
+
 		// 区切り文字判定
 		prevSep = isSeparator(c)
 	}
@@ -381,6 +421,10 @@ func editorSyntaxToColor(hl byte) int {
 	switch hl {
 	case hlComment:
 		return 36
+	case hlKeyword1:
+		return 33
+	case hlKeyword2:
+		return 32
 	case hlString:
 		return 35
 	case hlNumber:
@@ -551,11 +595,15 @@ func editorInsertChar(c rune) {
 
 // 新しい行を挿入
 func editorInsertNewLine() {
+	row := &ec.row[ec.cy]
+
 	if ec.cx == 0 {
 		// カーソルが行頭の場合は空行を挿入
 		editorInsertRow(ec.cy, "")
+	} else if ec.cx == len(row.chars) {
+		// カーソルが行末の場合は次行に空行を挿入
+		editorInsertRow(ec.cy+1, "")
 	} else {
-		row := &ec.row[ec.cy]
 		// カーソル位置の右側の文字列を次の行として挿入
 		editorInsertRow(ec.cy+1, row.chars[ec.cx+1:])
 		// 現在行はカーソル位置の左側までに更新
