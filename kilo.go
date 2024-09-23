@@ -874,15 +874,30 @@ func editorDrawRows(ab *string) {
 			currentColor := -1                                        // 現在の色を初期化
 
 			for j := 0; j < rowLen; j++ {
-				if hl[j] == hlNormal {
-					// 色をリセット
+				if unicode.IsControl(rune(c[j])) {
+					// 印字不可文字
+					var sym rune
+					if c[j] <= 26 {
+						sym = '@' + rune(c[j])
+					} else {
+						sym = '?'
+					}
+					*ab += "\x1b[7m"
+					*ab += string(sym)
+					*ab += "\x1b[m"
+					if currentColor != -1 {
+						*ab += fmt.Sprintf("\x1b[%dm", currentColor)
+					}
+
+				} else if hl[j] == hlNormal {
+					// 通常の文字色
 					if currentColor != -1 {
 						*ab += "\x1b[39m"
 						currentColor = -1
 					}
 					*ab += string(c[j])
 				} else {
-					// 色を変更
+					// ハイライト色
 					color := editorSyntaxToColor(hl[j])
 					if currentColor != color {
 						*ab += fmt.Sprintf("\x1b[%dm", color)
